@@ -6,7 +6,6 @@ public static int main(string[] args) {
 	
 	Windows.MainWindow mw = new Windows.MainWindow();
 	
-	stdout.printf( "vamoo \n");
 	Gtk.main();
 	
 	return 0;

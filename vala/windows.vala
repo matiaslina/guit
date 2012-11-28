@@ -12,6 +12,8 @@ public class MainWindow : Gtk.Window {
 	// Box that divides Webkit and buttons from left
 	private Gtk.HBox main_box;
 	
+	private FileTree tree_view;
+	/*
 	// Box for the buttons 
 	private Gtk.VBox button_box;
 	
@@ -19,7 +21,7 @@ public class MainWindow : Gtk.Window {
 	private Gtk.Button readme;
 	private Gtk.Button licence;
 	private Gtk.Button todo;
-	
+	*/
 	// The webview.
 	private WebView web_view;
 	
@@ -28,8 +30,8 @@ public class MainWindow : Gtk.Window {
 	 */
 	public MainWindow() {
 		set_default_size (800,600);
-		this.create_widgets();
-		
+		this.create_widgets ();
+		this.connect_signals ();
 		show_all();
 		
 	} // End constructor
@@ -44,6 +46,8 @@ public class MainWindow : Gtk.Window {
 		//....
 		
 		
+		
+		/*
 		// Side panel with 3 buttons
 		this.button_box = new Gtk.VBox(false, 0);
 		
@@ -53,9 +57,19 @@ public class MainWindow : Gtk.Window {
 		this.todo = new Gtk.Button.with_label("View todo");
 		
 		// Pack the buttons
+		
 		this.button_box.pack_start( this.readme, false, true, 0 );
 		this.button_box.pack_start( this.licence, false, true, 0);
 		this.button_box.pack_start( this.todo, false, true, 0);
+		*/
+		
+				
+		tree_view = new FileTree();
+		
+		// Renderer 
+		var cell = new Gtk.CellRendererText();
+		tree_view.insert_column_with_attributes(-1,"state",cell,"text",0);
+		tree_view.insert_column_with_attributes(-1,"Cities",cell,"text",1);
 		
 		// The webview 
 		this.web_view = new WebView();
@@ -63,7 +77,7 @@ public class MainWindow : Gtk.Window {
 		// The main box.
 		this.main_box = new Gtk.HBox(false, 0);
 		
-		this.main_box.pack_start ( button_box, true, true, 0 );
+		this.main_box.pack_start ( tree_view , true, true, 0 );
 		this.main_box.pack_start( web_view, true, true, 0);
 		
 		// menu_box.pack_start( menu, true, true, 0);
