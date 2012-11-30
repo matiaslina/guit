@@ -46,6 +46,31 @@ public class FileTree : Gtk.TreeView {
 		// File name
 		Gtk.CellRenderer cell = new Gtk.CellRendererText();
 		insert_column_with_attributes(-1,"", cell, "text", 1);
+	
+		this.config();
+		
+ 	}
+ 	
+ 	// Configuration.
+ 	private void config() {
+
+		// Set the header invisible
+ 		set_headers_visible( false );
+
+		// Change the color of the tree to light grey
+
+		uint16 bg_color = 0xEEAA;
+
+ 		modify_base(
+			StateType.NORMAL,
+			Gdk.Color() { 
+				red		= bg_color,
+				green 	= bg_color,
+				blue 	= bg_color
+			}
+		);
+		
+		stdout.printf("%i\n", uint16.MAX);
  	}
 
  	/* Just update the tree */
