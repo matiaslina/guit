@@ -1,3 +1,4 @@
 .conf
 *.pyc
 git-gui
+vala/test/*

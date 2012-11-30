@@ -6,22 +6,14 @@ namespace Windows {
 public class MainWindow : Gtk.Window {
 	private const string TITLE = "Git Gui";
 	
-	// First box, divide menu and content */
-	private Gtk.VBox menu_box;
+	// First box, divide menu and content 
+	//private Gtk.VBox menu_box;
 	
 	// Box that divides Webkit and buttons from left
 	private Gtk.HBox main_box;
 	
 	private FileTree tree_view;
-	/*
-	// Box for the buttons 
-	private Gtk.VBox button_box;
 	
-	// Buttons for readme, todo and licence.
-	private Gtk.Button readme;
-	private Gtk.Button licence;
-	private Gtk.Button todo;
-	*/
 	// The webview.
 	private WebView web_view;
 	
@@ -45,31 +37,7 @@ public class MainWindow : Gtk.Window {
 		// Some things for the menu
 		//....
 		
-		
-		
-		/*
-		// Side panel with 3 buttons
-		this.button_box = new Gtk.VBox(false, 0);
-		
-		// Buttons
-		this.readme = new Gtk.Button.with_label("View readme");
-		this.licence = new Gtk.Button.with_label("View licence");
-		this.todo = new Gtk.Button.with_label("View todo");
-		
-		// Pack the buttons
-		
-		this.button_box.pack_start( this.readme, false, true, 0 );
-		this.button_box.pack_start( this.licence, false, true, 0);
-		this.button_box.pack_start( this.todo, false, true, 0);
-		*/
-		
-				
 		tree_view = new FileTree();
-		
-		// Renderer 
-		var cell = new Gtk.CellRendererText();
-		tree_view.insert_column_with_attributes(-1,"state",cell,"text",0);
-		tree_view.insert_column_with_attributes(-1,"Cities",cell,"text",1);
 		
 		// The webview 
 		this.web_view = new WebView();
