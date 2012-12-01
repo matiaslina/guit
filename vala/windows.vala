@@ -1,5 +1,6 @@
 using Gtk;
 using WebKit;
+using Windows.Widget;
 
 namespace Windows {
 
@@ -33,11 +34,16 @@ public class MainWindow : Gtk.Window {
 		
 		this.title = this.TITLE;
 		this.window_position = WindowPosition.CENTER;
+		this.set_border_width( 0 );
 		
 		// Some things for the menu
 		//....
 		
+		var scrolledWindow = new Gtk.ScrolledWindow(null,null);
+		
 		tree_view = new FileTree();
+		
+		scrolledWindow.add(tree_view);
 		
 		// The webview 
 		this.web_view = new WebView();
@@ -45,8 +51,8 @@ public class MainWindow : Gtk.Window {
 		// The main box.
 		this.main_box = new Gtk.HBox(false, 0);
 		
-		this.main_box.pack_start ( tree_view , true, true, 0 );
-		this.main_box.pack_start( web_view, true, true, 0);
+		this.main_box.pack_start ( scrolledWindow , true, true, 0 );
+		this.main_box.pack_start( web_view, false, false, 0);
 		
 		// menu_box.pack_start( menu, true, true, 0);
 		//menu_box.add( main_box );
@@ -60,6 +66,9 @@ public class MainWindow : Gtk.Window {
 	}
 	
 	
+	public void load_url ( string url ) {
+		this.web_view.load_uri( url );
+	} 
 	
 } // End of class Main Window
 
