@@ -22,19 +22,19 @@ string crearDom(string code) {
 
 public class MainWindow : Gtk.Window {
 	private const string TITLE = "Git Gui";
-	
-	// First box, divide menu and content 
-	//private Gtk.VBox menu_box;
-	
+
 	// Box that divides Webkit and buttons from left
-	private Gtk.HBox main_box;
+	private Gtk.VBox main_box;
+	
+	// Divide pane
+	private Gtk.HPaned main_pane;
 	
 	// the file tree
-	private Gtk.ScrolledWindow scrolled_box_filetree;
+	private ScrolledWindow scrolled_window_files;
 	private FileTree tree_view;
 	
 	// The webview.
-	private Gtk.ScrolledWindow scrolled_box_webview;
+	private ScrolledWindow scrolled_window_webview;
 	private WebView web_view;
 	
 	/**
@@ -58,25 +58,31 @@ public class MainWindow : Gtk.Window {
 		// Some things for the menu
 		//....
 		
+		// The containers
+		this.main_box = new Gtk.VBox(false, 0);
+		this.main_pane = new Gtk.HPaned ();
+		this.main_pane.set_position(200);
+		this.scrolled_window_files = new ScrolledWindow(null,null);
+		this.scrolled_window_webview = new ScrolledWindow(null,null);
+		
 		// The file tree
 		
-		this.scrolled_box_filetree = new Gtk.ScrolledWindow(null,null);
 		tree_view = new FileTree();
-		this.scrolled_box_filetree.add(tree_view);
+		this.scrolled_window_files.add( this.tree_view );
 		
 		
 		
 		// The webview 
-		this.scrolled_box_webview = new Gtk.ScrolledWindow(null,null);
 		this.web_view = new WebView();
-		this.scrolled_box_webview.add(web_view);
+		this.scrolled_window_webview.add( this.web_view);
+		
+		this.main_pane.pack1( this.scrolled_window_files, true, false );
+		this.main_pane.pack2( this.scrolled_window_webview, true,true );
 		
 		
 		// The main box.
-		this.main_box = new Gtk.HBox(false, 0);
 		
-		this.main_box.pack_start ( scrolled_box_filetree , true, true, 0 );
-		this.main_box.pack_start( scrolled_box_webview, false, false, 0);
+		this.main_box.pack_start ( main_pane , true, true, 0 );
 		
 		// menu_box.pack_start( menu, true, true, 0);
 		//menu_box.add( main_box );
