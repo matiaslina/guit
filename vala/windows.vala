@@ -63,11 +63,82 @@ public class MainWindow : Gtk.Window {
 	
 	private void connect_signals() {
 		this.destroy.connect ( Gtk.main_quit );
+		this.tree_view.cursor_changed.connect( this.load_file_in_webview);
 	}
 	
+	private string get_selected_path() {
+		
+		string path = this.tree_view.repo_path;
+		
+		// Get the path of the selected item.
+		Gtk.TreePath tree_path;
+		this.tree_view.get_cursor( out tree_path, null);
+		
+		var model = this.tree_view.get_model();
+		
+		// get the value.
+		string[] path_items = tree_path.to_string().split(":");
+		
+		for( int i = 0; i < path_items.length ; i++ ) {
+			Value val;
+			Gtk.TreeIter iter;
+			string string_path = "";
+			// Make a aux path.
+			for( int j = 0; j <= i ; j++) {
+				string_path += path_items[j];
+				if ( j != i ) {
+					string_path += ":";
+				} 
+			}
+			
+			Gtk.TreePath aux_tree_path = new Gtk.TreePath.from_string(string_path);
+			
+			model.get_iter(out iter, aux_tree_path);
+			model.get_value(iter, 1, out val);
+			
+			path += "/" + (string) val;
+		}
+		
+		return path;
+	}
 	
-	public void load_url ( string url ) {
-		this.web_view.load_uri( url );
+	// Loads a url
+	public void load_file_in_webview () {
+		Cancellable cancellable = null;
+		string code = "";
+		
+		try {
+			
+			File file = File.new_for_path(this.get_selected_path ());
+			
+			if( file.query_exists ( cancellable )) {
+				string line = "";
+				size_t s;
+				var dis = new DataInputStream( file.read(null) );
+				
+				while( cancellable.is_cancelled() == false && ((line = dis.read_line( out s, cancellable )) != null) ) {
+					code += line +"\n";
+				}
+				
+			}
+			
+			
+		} catch ( Error e) {
+			stderr.printf("Error: " + e.message );
+		} 
+		
+		// This load the code of the files into the webview. 
+		//this.web_view.load_html_string( code , "file:///");
+		
+		// I need to change the content of an html.
+		this.web_view.load_uri("file:///home/matias/programas/linux-git-gui/vala/webview-content/code.html");
+		
+		// log the code.
+		stdout.printf("%s \n",code);
+		
+		this.web_view.execute_script(
+			"window.onLoad(function(){var code = document.getElementById('myCode');	code.innerHTML = 'asodfjioasijdf'; } );"
+		);
 	} 
 	
 } // End of class Main Window
