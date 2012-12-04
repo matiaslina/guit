@@ -29,6 +29,11 @@ public class MainWindow : Gtk.Window {
 	// Divide pane
 	private Gtk.HPaned main_pane;
 	
+	// the menu
+	private Gtk.MenuBar bar;
+	private Gtk.MenuItem file_menu;
+	private Gtk.MenuItem exit_menu;
+	
 	// the file tree
 	private ScrolledWindow scrolled_window_files;
 	private FileTree tree_view;
@@ -56,7 +61,15 @@ public class MainWindow : Gtk.Window {
 		this.set_border_width( 0 );
 		
 		// Some things for the menu
-		//....
+		this.bar = new Gtk.MenuBar();
+		this.file_menu = new Gtk.MenuItem.with_label("File");
+		bar.add(this.file_menu);
+		Gtk.Menu file_submenu = new Gtk.Menu();
+		this.file_menu.set_submenu( file_submenu );
+		this.exit_menu = new Gtk.MenuItem.with_label("Exit");
+		file_submenu.add( this.exit_menu );
+		
+		// End of menu
 		
 		// The containers
 		this.main_box = new Gtk.VBox(false, 0);
@@ -81,7 +94,7 @@ public class MainWindow : Gtk.Window {
 		
 		
 		// The main box.
-		
+		this.main_box.pack_start ( this.bar, false, false, 0);
 		this.main_box.pack_start ( main_pane , true, true, 0 );
 		
 		// menu_box.pack_start( menu, true, true, 0);
@@ -93,6 +106,7 @@ public class MainWindow : Gtk.Window {
 	
 	private void connect_signals() {
 		this.destroy.connect ( Gtk.main_quit );
+		this.exit_menu.activate.connect( Gtk.main_quit );
 		this.tree_view.cursor_changed.connect( this.load_file_in_webview);
 	}
 	
