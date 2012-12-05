@@ -72,7 +72,7 @@ namespace Windows {
 
 			// Change the color of the tree to light grey
 
-			uint16 bg_color = 0xEEAA;
+			uint16 bg_color = 0xffff;
 
 	 		modify_base(
 				StateType.NORMAL,
