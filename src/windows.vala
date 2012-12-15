@@ -51,6 +51,7 @@ namespace Windows {
 		// the menu
 		private Gtk.MenuBar bar;
 		private Gtk.MenuItem file_menu;
+		private Gtk.MenuItem preferences_menu;
 		private Gtk.MenuItem exit_menu;
 	
 		// the file tree
@@ -90,6 +91,8 @@ namespace Windows {
 			bar.add(this.file_menu);
 			Gtk.Menu file_submenu = new Gtk.Menu();
 			this.file_menu.set_submenu( file_submenu );
+			this.preferences_menu = new Gtk.MenuItem.with_label("Preferences");
+			file_submenu.add(this.preferences_menu);
 			this.exit_menu = new Gtk.MenuItem.with_label("Exit");
 			file_submenu.add( this.exit_menu );
 		
@@ -121,7 +124,7 @@ namespace Windows {
 		
 			// The webview 
 			web_view = new WebView();
-			scrolled_window_webview.add( web_view);
+			scrolled_window_webview.add( web_view );
 		
 			main_pane.pack1( tree_view_container, true, false );
 			main_pane.pack2( scrolled_window_webview, true,true );
@@ -142,11 +145,19 @@ namespace Windows {
 		// Gonna connect every widget in here
 		private void connect_signals() {
 			this.destroy.connect ( Gtk.main_quit );
+			this.preferences_menu.activate.connect(this.show_preferences);
 			this.exit_menu.activate.connect( Gtk.main_quit );
 			this.tree_view.cursor_changed.connect( this.load_file_in_webview);
 		}
+		
+		/*
+		 * 	Signals
+		 */
 
-
+		private void show_preferences()
+		{
+			new Preferences();
+		}
 		// This will return the path of the selected item in the tree_view
 		private string get_selected_path() {
 		
@@ -225,14 +236,43 @@ namespace Windows {
 	public class Preferences : Gtk.Dialog
 	{
 	
-		private Gtk.Entry repo_dir;
-
-		
-
 		// Constructor.
 		public class Preferences() 
 		{
-
+			this.title = "Preferences";
+			this.border_width = 5;
+			set_default_size(350,450);
+			this.create_widgets();
+			this.connect_signals();
+			this.show_all();
 		}
+		
+		private void create_widgets()
+		{
+			add_button(STOCK_HELP, Gtk.ResponseType.HELP);
+			add_button(STOCK_CLOSE,Gtk.ResponseType.CLOSE);
+		}
+		
+		private void connect_signals()
+		{
+			this.response.connect(on_response);
+		}
+		
+		private void on_response(Gtk.Dialog source, int response_id)
+		{
+			switch( response_id )
+			{
+				case Gtk.ResponseType.CLOSE:
+					// Save the preferences.
+					destroy();
+					break;
+			}
+		}
+	
+	
+	
+	
 	}
+	
+	
 }// end of Windows namespace
