@@ -8,15 +8,20 @@ PACKAGES = \
 ADITIONAL_PACKAGES = --vapidir ./vapi \
 	--pkg libgit2 \
 
+FILES = \
+	src/main.vala \
+	src/windows.vala \
+	src/FileTree.vala \
+
 EXEC = git-gui
 
 all:
 	@echo "Compiling..."
-	valac main.vala windows.vala FileTree.vala $(PACKAGES) $(ADITIONAL_PACKAGES) -o $(EXEC)
+	valac $(FILES) $(PACKAGES) $(ADITIONAL_PACKAGES) -o $(EXEC)
 	@echo "Done!"
 
 
-get_code:
+get_c_code:
 	valac main.vala windows.vala FileTree.vala $(OPTIONS) -C
 
 run: all
