@@ -6,9 +6,11 @@
 using Gtk;
 using WebKit;
 using Windows.Widget;
+using Configuration;
 
 namespace Windows {
 
+	
 	string crearDom(string code) 
 	{
 		return """
@@ -68,6 +70,7 @@ namespace Windows {
 		 *	Construct for the main window
 		 */
 		public MainWindow() {
+			
 			set_default_size (800,600);
 			this.create_widgets ();
 			this.connect_signals ();
@@ -236,6 +239,13 @@ namespace Windows {
 	public class Preferences : Gtk.Dialog
 	{
 	
+		// inicialization
+		
+		// Containers
+		private Gtk.VBox main_container;
+		
+		private Gtk.TreeView repository_list;	
+		
 		// Constructor.
 		public class Preferences() 
 		{
@@ -249,6 +259,26 @@ namespace Windows {
 		
 		private void create_widgets()
 		{
+						
+			main_container = new Gtk.VBox(false,0);
+			
+			Gtk.ListStore store = new Gtk.ListStore(1,typeof(string));
+			Gtk.TreeIter iter;
+			
+			string[] paths = Configuration.config.repo_paths;
+			
+			foreach( string path in paths)
+			{
+				store.append(out iter);
+				store.set(iter,0, path);
+			}
+			
+			repository_list = new Gtk.TreeView.with_model(store);
+			
+			main_container.pack_start(repository_list, true,true,0);
+			
+			this.add(main_container);
+			
 			add_button(STOCK_HELP, Gtk.ResponseType.HELP);
 			add_button(STOCK_CLOSE,Gtk.ResponseType.CLOSE);
 		}
