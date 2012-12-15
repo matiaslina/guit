@@ -15,9 +15,22 @@ namespace Windows {
 			<html>
 			<head>
 			<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
-			<link href="/home/matias/workspace/linux-git-gui/vala/webview-content/prettify/prettify.css" type="text/css" rel="stylesheet" />
-			<script type="text/javascript" src="/home/matias/workspace/linux-git-gui/vala/webview-content/prettify/prettify.js"></script>
+			<link href="/home/matias/workspace/linux-git-gui/webview-content/prettify/prettify.css" type="text/css" rel="stylesheet" />
+			<script type="text/javascript" src="/home/matias/workspace/linux-git-gui/webview-content/prettify/prettify.js"></script>
 			<script type="text/javascript"></script>
+			<style>
+			 html body { padding: 0px; margin: 0px; }
+			 .prettyprint {
+				height: auto;
+				white-space: pre-wrap;
+				white-space: -moz-pre-wrap;
+				white-space: -pre-wrap;
+				white-space: -o-pre-wrap;
+				word-wrap: break-word;
+				padding: 15px;
+
+			 } 
+			</style>
 			</head>
 			<body onload="prettyPrint();">
 			<pre id="myCode" class="prettyprint">"""+ code +"""</pre>
@@ -92,7 +105,10 @@ namespace Windows {
 			tree_view_container = new VBox(false, 3);
 		
 			scrolled_window_webview = new ScrolledWindow(null,null);
-			scrolled_window_webview.set_policy( PolicyType.AUTOMATIC, PolicyType.AUTOMATIC );
+			
+			// Should change the policytype on the first parameter
+			// to some config.
+			scrolled_window_webview.set_policy( PolicyType.NEVER, PolicyType.AUTOMATIC );
 		
 			// The file tree
 			tree_view_title = new  Label.with_mnemonic("Files.");

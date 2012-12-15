@@ -1,9 +1,18 @@
-OPTIONS = --pkg gtk+-2.0 --pkg webkit-1.0 --pkg gio-2.0 --pkg gee-1.0 --pkg gdk-2.0
+PACKAGES = \
+	--pkg gtk+-2.0 \
+	--pkg webkit-1.0 \
+	--pkg gio-2.0 \
+	--pkg gee-1.0 \
+	--pkg gdk-2.0 \
+	
+ADITIONAL_PACKAGES = --vapidir ./vapi \
+	--pkg libgit2 \
+
 EXEC = git-gui
 
 all:
 	@echo "Compiling..."
-	valac main.vala windows.vala FileTree.vala $(OPTIONS) -o $(EXEC)
+	valac main.vala windows.vala FileTree.vala $(PACKAGES) $(ADITIONAL_PACKAGES) -o $(EXEC)
 	@echo "Done!"
 
 
