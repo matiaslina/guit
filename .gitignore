@@ -1,5 +1,4 @@
-.conf
-*.pyc
+*.ini
 git-gui
 m
 vala/test/*
