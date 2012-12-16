@@ -9,25 +9,25 @@ namespace Configuration
 	public const string[] GROUPS = {"repos"};
 
 	// One and only one instance of the config
-	public static Configuration config;
+	public static Configuration Config;
 	
 	// Init for above
 	public static Configuration getConfig()
 	{
-		if (config == null) 
+		if (Config == null) 
 		{
 			try 
 			{
-				config = new Configuration("config.ini");
+				Config = new Configuration("./config.ini");
 			}
 			catch ( InvalidConfigError e)
 			{
 				stdout.printf("%s\n",e.message);
-				config = null;
+				Config = null;
 			}
 		}
 		
-		return config;
+		return Config;
 	}
 	
 	public class Configuration 
@@ -39,6 +39,12 @@ namespace Configuration
 		
 		public Configuration (string where) throws InvalidConfigError
 		{
+			// Inicialization
+			config_file = new KeyFile();
+			
+			// Some configuration over the file
+			config_file.set_list_separator(',');
+			
 			try 
 			{
 				// Load the config file.

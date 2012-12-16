@@ -241,14 +241,15 @@ namespace Windows {
 	
 		// inicialization
 		
-		// Containers
-		private Gtk.VBox main_container;
-		
-		private Gtk.TreeView repository_list;	
+		// Repository list
+		private Gtk.TreeView repository_list;
+		private Button add_repository;
+		private Button remove_repository;
 		
 		// Constructor.
 		public class Preferences() 
 		{
+		
 			this.title = "Preferences";
 			this.border_width = 5;
 			set_default_size(350,450);
@@ -259,26 +260,41 @@ namespace Windows {
 		
 		private void create_widgets()
 		{
-						
-			main_container = new Gtk.VBox(false,0);
+			// Containers
+			HBox tree_container = new HBox(false, 0);
+			VBox button_tree_container = new VBox(false,0);
+			Gtk.Box this_container = get_content_area() as Gtk.Box;
 			
+			
+			// Repo tree
 			Gtk.ListStore store = new Gtk.ListStore(1,typeof(string));
 			Gtk.TreeIter iter;
 			
-			string[] paths = Configuration.config.repo_paths;
+			// Get the paths from config
+			string[] paths = Config.repo_paths;
 			
 			foreach( string path in paths)
 			{
+				stdout.printf("%s\n",path);
 				store.append(out iter);
 				store.set(iter,0, path);
 			}
 			
 			repository_list = new Gtk.TreeView.with_model(store);
+			CellRendererText cell = new CellRendererText();
+			repository_list.insert_column_with_attributes(-1, "Path to repository",cell,"text",0);
 			
-			main_container.pack_start(repository_list, true,true,0);
+			// Buttons of the tree
+			add_repository = new Button.with_label("Add");
+			remove_repository = new Button.with_label("Remove");
 			
-			this.add(main_container);
+			button_tree_container.pack_start(add_repository, false,true, 0);
+			button_tree_container.pack_start(remove_repository, false, true,0);
 			
+			tree_container.pack_start(repository_list, true,true,3);
+			tree_container.pack_start(button_tree_container,true,true,3);
+			
+			this_container.pack_start(tree_container,true,true,0);
 			add_button(STOCK_HELP, Gtk.ResponseType.HELP);
 			add_button(STOCK_CLOSE,Gtk.ResponseType.CLOSE);
 		}
