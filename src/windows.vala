@@ -147,9 +147,9 @@ namespace Windows {
 
 		// Gonna connect every widget in here
 		private void connect_signals() {
-			this.destroy.connect ( Gtk.main_quit );
+			this.destroy.connect (this.destroy);
 			this.preferences_menu.activate.connect(this.show_preferences);
-			this.exit_menu.activate.connect( Gtk.main_quit );
+			this.exit_menu.activate.connect(this.destroy);
 			this.tree_view.cursor_changed.connect( this.load_file_in_webview);
 		}
 		
@@ -231,6 +231,12 @@ namespace Windows {
 			// This load the code of the files into the webview. 
 			this.web_view.load_html_string( crearDom(code) , "file:///");
 		
+		}
+		
+		private void destroy()
+		{
+			Config.save_configuration();
+			Gtk.main_quit(); 
 		} 
 	
 	} // End of class Main Window
@@ -241,10 +247,12 @@ namespace Windows {
 	
 		// inicialization
 		
+		private Gtk.Notebook notebook;
+		
 		// Repository list
 		private Gtk.TreeView repository_list;
-		private Button add_repository;
-		private Button remove_repository;
+		private Button btn_add_repository;
+		private Button btn_remove_repository;
 		
 		// Constructor.
 		public class Preferences() 
@@ -252,7 +260,7 @@ namespace Windows {
 		
 			this.title = "Preferences";
 			this.border_width = 5;
-			set_default_size(350,450);
+			set_default_size(650,450);
 			this.create_widgets();
 			this.connect_signals();
 			this.show_all();
@@ -264,44 +272,103 @@ namespace Windows {
 			HBox tree_container = new HBox(false, 0);
 			VBox button_tree_container = new VBox(false,0);
 			Gtk.Box this_container = get_content_area() as Gtk.Box;
+			notebook = new Gtk.Notebook();
 			
 			
 			// Repo tree
-			Gtk.ListStore store = new Gtk.ListStore(1,typeof(string));
+			Gtk.ListStore store = new Gtk.ListStore(2,typeof(string),typeof(string));
 			Gtk.TreeIter iter;
 			
 			// Get the paths from config
-			string[] paths = Config.repo_paths;
+			string[,] repo_info = Config.repo_paths;
 			
-			foreach( string path in paths)
+			for(int i = 0; i < repo_info.length[0]; i++)
 			{
-				stdout.printf("%s\n",path);
+				stdout.printf("%s %s\n",repo_info[i,0],repo_info[i,1]);
 				store.append(out iter);
-				store.set(iter,0, path);
+				store.set(iter,0, repo_info[i,0],1,repo_info[i,1]);
 			}
 			
 			repository_list = new Gtk.TreeView.with_model(store);
 			CellRendererText cell = new CellRendererText();
-			repository_list.insert_column_with_attributes(-1, "Path to repository",cell,"text",0);
+			repository_list.insert_column_with_attributes(-1, "Name",cell,"text",0);
+			repository_list.insert_column_with_attributes(-1, "Path to repository",cell,"text",1);
 			
 			// Buttons of the tree
-			add_repository = new Button.with_label("Add");
-			remove_repository = new Button.with_label("Remove");
+			btn_add_repository = new Button.with_label("Add");
 			
-			button_tree_container.pack_start(add_repository, false,true, 0);
-			button_tree_container.pack_start(remove_repository, false, true,0);
+			btn_remove_repository = new Button.with_label("Remove");
+			// Set the remove button to insensitive
+			btn_remove_repository.set_sensitive(false);
 			
-			tree_container.pack_start(repository_list, true,true,3);
-			tree_container.pack_start(button_tree_container,true,true,3);
+			button_tree_container.pack_start(btn_add_repository, false,true, 0);
+			button_tree_container.pack_start(btn_remove_repository, false, true,0);
 			
-			this_container.pack_start(tree_container,true,true,0);
+			tree_container.pack_start(repository_list, true,true,5);
+			tree_container.pack_start(button_tree_container,true,true,0);
+			
+			tree_container.set_border_width(5);
+			
+			Gtk.Label page_title = new Gtk.Label("Repositories");
+			
+			notebook.append_page(tree_container, page_title);
+			
+			this_container.pack_start(notebook,true,true,1);
+			
 			add_button(STOCK_HELP, Gtk.ResponseType.HELP);
 			add_button(STOCK_CLOSE,Gtk.ResponseType.CLOSE);
 		}
 		
 		private void connect_signals()
 		{
-			this.response.connect(on_response);
+			repository_list.cursor_changed.connect(check_enabled);
+			btn_remove_repository.clicked.connect(this.remove_repository);
+			response.connect(on_response);
+		}
+		
+		private void remove_repository()
+		{
+			// To iteration over the tree.
+			Value val;
+			Gtk.TreePath tree_path;
+			Gtk.TreeIter iter;
+			repository_list.get_cursor( out tree_path, null);
+			var model = repository_list.get_model();
+			
+			// Name of the repository to remove
+			string name;
+			
+			model.get_iter(out iter, tree_path);
+			model.get_value(iter, 0, out val);
+		
+			// Set the name, could be null.
+			name = (string) val;
+			
+			stdout.printf("name: %s\n",name);
+			
+			if( name != null)
+			{
+				try{
+					Config.remove_repository(name);
+				}
+				catch (Error e)
+				{
+					stderr.printf("%s\n",e.message);
+				}
+			}
+			
+		}
+		
+		private void check_enabled()
+		{
+			// Get the path of the selected item.
+			Gtk.TreePath tree_path = null;
+			this.repository_list.get_cursor( out tree_path, null);
+			
+			if( tree_path != null && btn_remove_repository.is_sensitive() == false)
+				this.btn_remove_repository.set_sensitive(true);
+			else if( tree_path == null && btn_remove_repository.is_sensitive() == true)
+				this.btn_remove_repository.set_sensitive(false);
 		}
 		
 		private void on_response(Gtk.Dialog source, int response_id)
@@ -314,9 +381,6 @@ namespace Windows {
 					break;
 			}
 		}
-	
-	
-	
 	
 	}
 	

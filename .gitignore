@@ -1,4 +1,4 @@
 *.ini
 git-gui
 m
-vala/test/*
+test/*
