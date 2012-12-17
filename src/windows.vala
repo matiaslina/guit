@@ -147,9 +147,9 @@ namespace Windows {
 
 		// Gonna connect every widget in here
 		private void connect_signals() {
-			this.destroy.connect (this.destroy);
+			this.destroy.connect ( this.close_window );
 			this.preferences_menu.activate.connect(this.show_preferences);
-			this.exit_menu.activate.connect(this.destroy);
+			this.exit_menu.activate.connect(this.close_window);
 			this.tree_view.cursor_changed.connect( this.load_file_in_webview);
 		}
 		
@@ -233,7 +233,7 @@ namespace Windows {
 		
 		}
 		
-		private void destroy()
+		private void close_window()
 		{
 			Config.save_configuration();
 			Gtk.main_quit(); 
@@ -248,11 +248,13 @@ namespace Windows {
 		// inicialization
 		
 		private Gtk.Notebook notebook;
+		private Gtk.ScrolledWindow scrolled_repo_list;
 		
 		// Repository list
 		private Gtk.TreeView repository_list;
 		private Button btn_add_repository;
 		private Button btn_remove_repository;
+		private Button btn_edit_repository;
 		
 		// Constructor.
 		public class Preferences() 
@@ -269,11 +271,17 @@ namespace Windows {
 		private void create_widgets()
 		{
 			// Containers
-			HBox tree_container = new HBox(false, 0);
-			VBox button_tree_container = new VBox(false,0);
 			Gtk.Box this_container = get_content_area() as Gtk.Box;
+			// Main container for the repository list
+			HBox tree_container = new HBox(false, 0);
+			// Button containers
+			VBox button_tree_container = new VBox(false,0);
 			notebook = new Gtk.Notebook();
 			
+			// Scrolled window for the repository list
+			scrolled_repo_list = new ScrolledWindow(null,null);
+			scrolled_repo_list.set_policy( PolicyType.NEVER, PolicyType.AUTOMATIC );
+			scrolled_repo_list.set_shadow_type( ShadowType.IN);
 			
 			// Repo tree
 			Gtk.ListStore store = new Gtk.ListStore(2,typeof(string),typeof(string));
@@ -296,20 +304,28 @@ namespace Windows {
 			
 			// Buttons of the tree
 			btn_add_repository = new Button.with_label("Add");
-			
+			btn_edit_repository = new Button.with_label("Edit");
 			btn_remove_repository = new Button.with_label("Remove");
+			
 			// Set the remove button to insensitive
 			btn_remove_repository.set_sensitive(false);
-			
+			btn_edit_repository.set_sensitive(false);
+		
+			// Packaging
 			button_tree_container.pack_start(btn_add_repository, false,true, 0);
+			button_tree_container.pack_start( btn_edit_repository, false, true, 0);
 			button_tree_container.pack_start(btn_remove_repository, false, true,0);
 			
-			tree_container.pack_start(repository_list, true,true,5);
+			scrolled_repo_list.add( repository_list);
+			tree_container.pack_start(scrolled_repo_list, true,true,5);
 			tree_container.pack_start(button_tree_container,true,true,0);
 			
 			tree_container.set_border_width(5);
 			
-			Gtk.Label page_title = new Gtk.Label("Repositories");
+			// Tabs for the notebook
+			Gtk.Label page_title;
+			
+			page_title = new Gtk.Label("Repositories");
 			
 			notebook.append_page(tree_container, page_title);
 			
@@ -365,10 +381,20 @@ namespace Windows {
 			Gtk.TreePath tree_path = null;
 			this.repository_list.get_cursor( out tree_path, null);
 			
-			if( tree_path != null && btn_remove_repository.is_sensitive() == false)
+			if( tree_path != null 
+				&& btn_remove_repository.is_sensitive() == false 
+				&& btn_edit_repository.is_sensitive() == false)
+			{
 				this.btn_remove_repository.set_sensitive(true);
-			else if( tree_path == null && btn_remove_repository.is_sensitive() == true)
+				this.btn_edit_repository.set_sensitive(true);
+			}
+			else if( tree_path == null 
+				&& btn_remove_repository.is_sensitive() == true 
+				&& btn_edit_repository.is_sensitive() == true)
+			{
 				this.btn_remove_repository.set_sensitive(false);
+				this.btn_edit_repository.set_sensitive(false);
+			}
 		}
 		
 		private void on_response(Gtk.Dialog source, int response_id)
