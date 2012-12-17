@@ -7,13 +7,12 @@ namespace Configuration
 	
 	// Constants
 	public const string CONFIGURATION_FILE_PATH = "./config.ini";
-	public const string[] GROUPS = {"repos"};
 
 	// One and only one instance of the config
 	public static Configuration Config;
 	
 	// Init for above
-	public static Configuration getConfig()
+	public static Configuration load_config()
 	{
 		if (Config == null) 
 		{
@@ -31,18 +30,19 @@ namespace Configuration
 		return Config;
 	}
 	
+	
 	public class Configuration 
 	{
 		
 		// Inicialization.
 		private KeyFile config_file;
 		public string[,] repo_paths{ public get; private set; }
-		private string[] repo_keys;
 		
 		public Configuration (string where) throws InvalidConfigError
 		{
 			// Inicialization
 			config_file = new KeyFile();
+			
 			
 			// Some configuration over the file
 			config_file.set_list_separator(',');
@@ -52,16 +52,16 @@ namespace Configuration
 				// Load the config file.
 				config_file.load_from_file(where, KeyFileFlags.NONE);
 				
-				// Set the repo paths.
-				repo_keys = config_file.get_string_list("repos","keys");
+				// matrix of [n,2] where the first value are the names
+				// of the repos and the second one the are the paths
+				repo_paths = new string[config_file.get_groups().length,2];
 				
-				repo_paths = new string[repo_keys.length,2];
-				int n = 0;
-				while(n < repo_keys.length)
+				for(int i = 0; i < config_file.get_groups().length; i++)
 				{
-					repo_paths[n,0] = config_file.get_string(repo_keys[n],"name");
-					repo_paths[n,1] = config_file.get_string(repo_keys[n],"path");
-					n++;
+					repo_paths[i,0] = config_file.get_string(config_file.get_groups()[i],"name");
+					repo_paths[i,1] = config_file.get_string(config_file.get_groups()[i],"path");
+					
+					stdout.printf("name: %s\npath: %s\n",repo_paths[i,0],repo_paths[i,1]);
 				}
 				
 				
@@ -73,42 +73,26 @@ namespace Configuration
 		
 		}
 		
-		public void remove_repository(string name) throws InvalidConfigError
+		
+		public bool remove_repository(ref string name) throws InvalidConfigError
 		{
 			try
 			{
+				
 				// Remove the group from the file
 				config_file.remove_group(name);
-				
-				// Create an auxiliar variable to store the 
-				// new array of the keys for the repos
-				string[] aux = new string[repo_keys.length - 1];
-				// i for the repo_keys, j for the aux array.
-				int i,j;
-				j=0;
-				for(i = 0; i < repo_keys.length ; i++)
-				{
-					if( repo_keys[i] != name )
-					{
-						aux[j] = repo_keys[i];
-						j++; 
-					}
-				
-				}
-				
-				// Set the new array
-				repo_keys = aux;
-				//config_file.set_string_list("repos","keys",repo_keys);
 				
 				
 			}
 			catch (Error e)
 			{
-				throw new InvalidConfigError.INVALID_CONFIG( e.message );
+				return false;
 			}
+			
+			return true;
 		}
 		
-		public void save_configuration()
+		public bool save_config()
 		{
 			// New data to write into the config file.
 			string keyfile_str = config_file.to_data ();
@@ -119,9 +103,12 @@ namespace Configuration
 			catch (Error e)
 			{
 				stderr.printf("Error:%s\n",e.message);
+				return false;
 			}
-		
+			return true;
 		}
-		
-	}
+			
+	} // End configuration class
+	
+
 }

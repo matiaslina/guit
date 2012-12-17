@@ -235,7 +235,6 @@ namespace Windows {
 		
 		private void close_window()
 		{
-			Config.save_configuration();
 			Gtk.main_quit(); 
 		} 
 	
@@ -349,7 +348,7 @@ namespace Windows {
 			Gtk.TreePath tree_path;
 			Gtk.TreeIter iter;
 			repository_list.get_cursor( out tree_path, null);
-			var model = repository_list.get_model();
+			Gtk.ListStore model = (Gtk.ListStore) repository_list.get_model();
 			
 			// Name of the repository to remove
 			string name;
@@ -365,7 +364,8 @@ namespace Windows {
 			if( name != null)
 			{
 				try{
-					Config.remove_repository(name);
+					Config.remove_repository(ref name);
+					model.remove( iter );
 				}
 				catch (Error e)
 				{
@@ -402,8 +402,11 @@ namespace Windows {
 			switch( response_id )
 			{
 				case Gtk.ResponseType.CLOSE:
-					// Save the preferences.
 					destroy();
+					break;
+				case Gtk.ResponseType.HELP:
+					// This show the help in here
+					// this do nothing for now.
 					break;
 			}
 		}
