@@ -12,7 +12,7 @@ FILES = \
 	src/main.vala \
 	src/windows.vala \
 	src/FileTree.vala \
-	src/config.vala \
+	src/configuration.vala \
 
 EXEC = git-gui
 

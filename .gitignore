@@ -1,4 +1,5 @@
-*.ini
+repo.ini*
+config.ini*
 git-gui
 m
 test/*

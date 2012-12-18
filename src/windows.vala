@@ -65,6 +65,9 @@ namespace Windows {
 		// The webview.
 		private ScrolledWindow scrolled_window_webview;
 		private WebView web_view;
+		
+		// Dialogs
+		private Preferences preferences;
 	
 		/**
 		 *	Construct for the main window
@@ -159,7 +162,10 @@ namespace Windows {
 
 		private void show_preferences()
 		{
-			new Preferences();
+			if ( preferences == null )
+				preferences = new Preferences();
+			else
+				preferences.show_preferences();	
 		}
 		// This will return the path of the selected item in the tree_view
 		private string get_selected_path() {
@@ -286,16 +292,16 @@ namespace Windows {
 			Gtk.ListStore store = new Gtk.ListStore(2,typeof(string),typeof(string));
 			Gtk.TreeIter iter;
 			
-			// Get the paths from config
-			string[,] repo_info = Config.repo_paths;
+			// Fill the strore with the repos
+			List<string> k = Repos.groups.get_keys();
 			
-			for(int i = 0; i < repo_info.length[0]; i++)
+			for( int i=0 ; i < k.length(); i++)
 			{
-				stdout.printf("%s %s\n",repo_info[i,0],repo_info[i,1]);
-				store.append(out iter);
-				store.set(iter,0, repo_info[i,0],1,repo_info[i,1]);
-			}
-			
+				unowned string key = k.nth_data(i);
+				unowned string val = Repos.groups.lookup(key);
+				store.append( out iter );
+				store.set(iter,0, key, 1, val);
+			}			
 			repository_list = new Gtk.TreeView.with_model(store);
 			CellRendererText cell = new CellRendererText();
 			repository_list.insert_column_with_attributes(-1, "Name",cell,"text",0);
@@ -340,7 +346,7 @@ namespace Windows {
 			btn_remove_repository.clicked.connect(this.remove_repository);
 			response.connect(on_response);
 		}
-		
+				
 		private void remove_repository()
 		{
 			// To iteration over the tree.
@@ -364,7 +370,7 @@ namespace Windows {
 			if( name != null)
 			{
 				try{
-					Config.remove_repository(ref name);
+					Repos.remove_repository(ref name);
 					model.remove( iter );
 				}
 				catch (Error e)
@@ -402,7 +408,7 @@ namespace Windows {
 			switch( response_id )
 			{
 				case Gtk.ResponseType.CLOSE:
-					destroy();
+					this.hide_all();
 					break;
 				case Gtk.ResponseType.HELP:
 					// This show the help in here
@@ -410,8 +416,17 @@ namespace Windows {
 					break;
 			}
 		}
-	
-	}
+		
+		/**
+		 * Shows the preferences
+		 */
+		public void show_preferences()
+		{
+			assert( this != null);
+			this.show_all();
+		}
+		
+	} // End of preferences 
 	
 	
 }// end of Windows namespace
