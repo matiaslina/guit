@@ -125,6 +125,15 @@ namespace Configuration
 			}
 			return true;	
 		}
+		
+		/**
+		 * Get the value from the key passed by parameter
+		 */
+		
+		public string get_value( string key )
+		{
+			return this.groups.lookup(key);
+		}
 	} // End of Repositories class
 
 	

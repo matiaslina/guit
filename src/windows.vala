@@ -40,9 +40,19 @@ namespace Windows {
 			</html>
 			""";
 	}
+	
+	// what we are doing
+	public static enum Status 
+	{
+		EDITING_REPO = 0,
+		ADDING_REPO,
+		REMOVING_REPO,
+	}
 
 	public class MainWindow : Gtk.Window {
-		private const string TITLE = "Git Gui";
+		
+		private const string TITLE = "Guit";
+		
 
 		// Box that divides Webkit and buttons from left
 		private Gtk.VBox main_box;
@@ -167,6 +177,7 @@ namespace Windows {
 			else
 				preferences.show_preferences();	
 		}
+		
 		// This will return the path of the selected item in the tree_view
 		private string get_selected_path() {
 		
@@ -250,8 +261,6 @@ namespace Windows {
 	public class Preferences : Gtk.Dialog
 	{
 	
-		// inicialization
-		
 		private Gtk.Notebook notebook;
 		private Gtk.ScrolledWindow scrolled_repo_list;
 		
@@ -260,6 +269,8 @@ namespace Windows {
 		private Button btn_add_repository;
 		private Button btn_remove_repository;
 		private Button btn_edit_repository;
+		
+		private RepoDialog aer_dialog;
 		
 		// Constructor.
 		public class Preferences() 
@@ -343,11 +354,58 @@ namespace Windows {
 		private void connect_signals()
 		{
 			repository_list.cursor_changed.connect(check_enabled);
-			btn_remove_repository.clicked.connect(this.remove_repository);
+			btn_add_repository.clicked.connect(() => {
+				aer_repository(Status.ADDING_REPO);
+			});
+			btn_edit_repository.clicked.connect(() => {
+				aer_repository(Status.EDITING_REPO);
+			});
+			btn_remove_repository.clicked.connect(() => {
+				aer_repository(Status.REMOVING_REPO);
+			});
 			response.connect(on_response);
 		}
 				
-		private void remove_repository()
+		/**
+		 * This method is triggered when the user want's to 
+		 * Add/Edit/Remove a repository.
+		 */
+		private void aer_repository(int status)
+		{
+			switch( status )
+			{
+				case Status.ADDING_REPO:
+					if ( aer_dialog == null )
+						aer_dialog = new RepoDialog();
+					break;
+				case Status.EDITING_REPO:
+					if ( aer_dialog == null )
+						aer_dialog = new RepoDialog( );
+					aer_dialog.set_editing( this.get_selected_repository( Status.EDITING_REPO ));
+					break;
+				case Status.REMOVING_REPO:
+					string name = this.get_selected_repository( Status.REMOVING_REPO );
+					
+					if( name != null )
+					{
+						stdout.printf("name: %s\n",name);
+		
+						if( name != null)
+						{
+							try{
+								Repos.remove_repository(ref name);
+							}
+							catch (Error e)
+							{
+								stderr.printf("%s\n",e.message);
+							}
+						}
+					}
+					break;
+			}
+		}
+		
+		private string? get_selected_repository( Status? status )
 		{
 			// To iteration over the tree.
 			Value val;
@@ -355,30 +413,16 @@ namespace Windows {
 			Gtk.TreeIter iter;
 			repository_list.get_cursor( out tree_path, null);
 			Gtk.ListStore model = (Gtk.ListStore) repository_list.get_model();
-			
-			// Name of the repository to remove
-			string name;
-			
+
 			model.get_iter(out iter, tree_path);
 			model.get_value(iter, 0, out val);
-		
+			
+			// Lets remove the repo from the list only if we are removing the repo :P
+			if ( (status != null ) && (status == Status.REMOVING_REPO))
+				model.remove( iter );
+			
 			// Set the name, could be null.
-			name = (string) val;
-			
-			stdout.printf("name: %s\n",name);
-			
-			if( name != null)
-			{
-				try{
-					Repos.remove_repository(ref name);
-					model.remove( iter );
-				}
-				catch (Error e)
-				{
-					stderr.printf("%s\n",e.message);
-				}
-			}
-			
+			return (string) val;
 		}
 		
 		private void check_enabled()
@@ -428,5 +472,81 @@ namespace Windows {
 		
 	} // End of preferences 
 	
+	
+	/**
+	 * Just a dialog to Add or edit the repositories on
+	 * the click on some buttons. This dialog have only
+	 * a name for the repo, and the path.
+	 */
+	
+	public class RepoDialog : Gtk.Dialog
+	{
+		
+		private int current_status;
+		
+		private Gtk.Entry t_repository_name;
+		private Gtk.Entry t_repository_path;
+		
+		/**
+		 * Consturctor.
+		 * The parameter may be null because this set if we're
+		 * editing or creating a repository.
+		 */
+		public RepoDialog ()
+		{
+							
+			// Container
+			Gtk.Box this_container = get_content_area() as Gtk.Box;
+			
+			// Creating some elements
+			Label l_name = new Label("Name:");
+			Label l_path = new Label("Path:");
+			t_repository_path = new Entry();
+			t_repository_name = new Entry();
+			
+			// Pack all in the main container
+			this_container.pack_start(l_name,false, false, 0);
+			this_container.pack_start(t_repository_name, true,true, 0);
+			this_container.pack_start(l_path, false, false, 0);
+			this_container.pack_start(t_repository_path , true, true, 0);
+			
+			// Adds two buttons.
+			add_button(STOCK_OK, Gtk.ResponseType.OK);
+			add_button(STOCK_CANCEL, Gtk.ResponseType.CANCEL);
+			
+			// We connect some signals in a separated function
+			this.connect_signals();
+			
+			show_all();
+		}
+		
+		private void connect_signals()
+		{
+			response.connect( on_response );
+		}
+		
+		private void on_response(Gtk.Dialog source, int response_id)
+		{
+			switch( response_id )
+			{
+				case Gtk.ResponseType.OK:
+					// Do some save information.
+					stdout.printf("Button OK pressed :)\n");
+					break;
+				case Gtk.ResponseType.CANCEL:
+					destroy();
+					break;
+			}
+		}
+		
+		public void set_editing( string repository_name)
+		{
+			// That the repo name it's null means that we're
+			// creating a new repository form a path
+			t_repository_name.set_text( repository_name );
+			t_repository_path.set_text( Repos.groups.lookup( repository_name ));
+			
+		}
+	}
 	
 }// end of Windows namespace
