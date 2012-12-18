@@ -14,7 +14,7 @@ FILES = \
 	src/FileTree.vala \
 	src/configuration.vala \
 
-EXEC = git-gui
+EXEC = guit
 
 all:
 	@echo "Compiling..."
