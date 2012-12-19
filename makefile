@@ -31,5 +31,9 @@ run: all
 	@./$(EXEC)
 	@echo "Bye bye"
 
+reset-config:
+	@cp -f config.ini.backup repo.ini
+	@echo "All configuration have been reseted."
+
 clean:
 	rm $(EXEC)

@@ -47,6 +47,7 @@ namespace Windows {
 		EDITING_REPO = 0,
 		ADDING_REPO,
 		REMOVING_REPO,
+		NONE,
 	}
 
 	public class MainWindow : Gtk.Window {
@@ -377,14 +378,44 @@ namespace Windows {
 			switch( status )
 			{
 				case Status.ADDING_REPO:
-					if ( aer_dialog == null )
+					if ( aer_dialog == null)
 						aer_dialog = new RepoDialog();
+					aer_dialog.show_this_dialog();
+					
+					int response = aer_dialog.run();
+					if( response == Gtk.ResponseType.OK)
+					{
+						string[] g = Repos.get_groups();
+						int last_repo = g.length -1;
+						// Then we add this to the list.
+						Gtk.ListStore model = (Gtk.ListStore) repository_list.get_model();
+						TreeIter iter;
+						
+						model.append( out iter );
+						model.set(iter, 0, g[last_repo], 1, Repos.get_info( g[last_repo], "path") );
+						
+					}
 					break;
 				case Status.EDITING_REPO:
 					if ( aer_dialog == null )
 						aer_dialog = new RepoDialog( );
+					aer_dialog.show_this_dialog();
 					this.get_selected_repository( out name, Status.EDITING_REPO );
 					aer_dialog.set_editing( name );
+					
+					int response = aer_dialog.run();
+					if (response == Gtk.ResponseType.OK)
+					{
+						// Change the info in the store.
+						Gtk.TreePath tree_path;
+						Gtk.TreeIter iter;
+						repository_list.get_cursor( out tree_path, null);
+						Gtk.ListStore model = (Gtk.ListStore) repository_list.get_model();
+
+						model.get_iter(out iter, tree_path);
+						model.set(iter,0, /* name */, 1, /* path */);
+					}
+					
 					break;
 				case Status.REMOVING_REPO:
 					this.get_selected_repository(out name, Status.REMOVING_REPO );
@@ -393,7 +424,8 @@ namespace Windows {
 	
 					if( name != null)
 					{
-						try{
+						try
+						{
 							Repos.remove_repository(ref name);
 						}
 						catch (Error e)
@@ -405,7 +437,7 @@ namespace Windows {
 			}
 		}
 		
-		private void get_selected_repository( out string name, Status? status )
+		private void get_selected_repository( out string name, Status status )
 		{
 			// To iteration over the tree.
 			Value val;
@@ -418,9 +450,9 @@ namespace Windows {
 			model.get_value(iter, 0, out val);
 			
 			// Lets remove the repo from the list only if we are removing the repo :P
-			if ( (status != null ) && (status == Status.REMOVING_REPO))
+			if (status == Status.REMOVING_REPO)
 				model.remove( iter );
-			
+		
 			name = (string) val;
 			
 		}
@@ -495,6 +527,8 @@ namespace Windows {
 		 */
 		public RepoDialog ()
 		{
+			
+			set_keep_above(true);
 							
 			// Container
 			Gtk.Box this_container = get_content_area() as Gtk.Box;
@@ -518,7 +552,6 @@ namespace Windows {
 			// We connect some signals in a separated function
 			this.connect_signals();
 			
-			show_all();
 		}
 		
 		private void connect_signals()
@@ -532,12 +565,27 @@ namespace Windows {
 			{
 				case Gtk.ResponseType.OK:
 					// Do some save information.
-					stdout.printf("Button OK pressed :)\n");
+					
+					// Add the repo to the configuration
+					Repos.add_repository( t_repository_name.get_text(), t_repository_path.get_text());
+					
+					// Set the entries to nothing.
+					t_repository_name.set_text("");
+					t_repository_path.set_text("");
+					
+					hide_all();
+					//destroy();
 					break;
 				case Gtk.ResponseType.CANCEL:
-					destroy();
+					hide_all();
+					//destroy();
 					break;
 			}
+		}
+		
+		public void show_this_dialog()
+		{
+			show_all();
 		}
 		
 		public void set_editing( string repository_name)
