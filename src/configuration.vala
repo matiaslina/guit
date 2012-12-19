@@ -57,7 +57,7 @@ namespace Configuration
 		private KeyFile file;
 		
 		// groups in the file.
-		public HashTable<string,string> groups{ public get; public set;}
+		private HashTable<string,string> groups;
 		
 		/**
 		 * Constructor of a new Repositories manager
@@ -73,7 +73,9 @@ namespace Configuration
 								
 				foreach( string group in file.get_groups())
 				{
+					
 					groups.insert(group,file.get_string(group,"path"));
+					stdout.printf("group:%s\n", group);
 				}
 			}
 			catch ( Error e )
@@ -116,6 +118,9 @@ namespace Configuration
 			string keyfile_str = file.to_data ();
 			try
 			{
+				this.groups.foreach((v,k) => {
+					stdout.printf("v:%s , k:%s",(string) v, (string) k);
+				});
 				FileUtils.set_contents(REPOSITORIES_PATH, keyfile_str);
 			}
 			catch (Error e)
@@ -130,10 +135,22 @@ namespace Configuration
 		 * Get the value from the key passed by parameter
 		 */
 		
-		public string get_value( string key )
+		public string get( string key )
 		{
+			stdout.printf("Getting value from key: [%s,%s]\n", key,this.groups.lookup(key));
 			return this.groups.lookup(key);
 		}
+		
+		public List<string> get_keys()
+		{
+			return this.groups.get_keys();
+		}
+		
+		public List<string> get_values()
+		{
+			return this.groups.get_values();
+		}
+		
 	} // End of Repositories class
 
 	

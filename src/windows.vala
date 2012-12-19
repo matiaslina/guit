@@ -302,14 +302,12 @@ namespace Windows {
 			// Repo tree
 			Gtk.ListStore store = new Gtk.ListStore(2,typeof(string),typeof(string));
 			Gtk.TreeIter iter;
-			
-			// Fill the strore with the repos
-			List<string> k = Repos.groups.get_keys();
-			
-			for( int i=0 ; i < k.length(); i++)
+						
+			for( int i=0 ; i < 3; i++)
 			{
-				unowned string key = k.nth_data(i);
-				unowned string val = Repos.groups.lookup(key);
+				// Here is the error.
+				string key = Repos.get_keys().nth_data(i);
+				string val = Repos.get(key);
 				store.append( out iter );
 				store.set(iter,0, key, 1, val);
 			}			
@@ -349,6 +347,7 @@ namespace Windows {
 			
 			add_button(STOCK_HELP, Gtk.ResponseType.HELP);
 			add_button(STOCK_CLOSE,Gtk.ResponseType.CLOSE);
+			
 		}
 		
 		private void connect_signals()
@@ -372,6 +371,8 @@ namespace Windows {
 		 */
 		private void aer_repository(int status)
 		{
+			string name;
+		
 			switch( status )
 			{
 				case Status.ADDING_REPO:
@@ -381,31 +382,29 @@ namespace Windows {
 				case Status.EDITING_REPO:
 					if ( aer_dialog == null )
 						aer_dialog = new RepoDialog( );
-					aer_dialog.set_editing( this.get_selected_repository( Status.EDITING_REPO ));
+					this.get_selected_repository( out name, Status.EDITING_REPO );
+					aer_dialog.set_editing( name );
 					break;
 				case Status.REMOVING_REPO:
-					string name = this.get_selected_repository( Status.REMOVING_REPO );
-					
-					if( name != null )
+					this.get_selected_repository(out name, Status.REMOVING_REPO );
+				
+					stdout.printf("name: %s\n",name);
+	
+					if( name != null)
 					{
-						stdout.printf("name: %s\n",name);
-		
-						if( name != null)
+						try{
+							Repos.remove_repository(ref name);
+						}
+						catch (Error e)
 						{
-							try{
-								Repos.remove_repository(ref name);
-							}
-							catch (Error e)
-							{
-								stderr.printf("%s\n",e.message);
-							}
+							stderr.printf("%s\n",e.message);
 						}
 					}
 					break;
 			}
 		}
 		
-		private string? get_selected_repository( Status? status )
+		private void get_selected_repository( out string name, Status? status )
 		{
 			// To iteration over the tree.
 			Value val;
@@ -421,8 +420,8 @@ namespace Windows {
 			if ( (status != null ) && (status == Status.REMOVING_REPO))
 				model.remove( iter );
 			
-			// Set the name, could be null.
-			return (string) val;
+			name = (string) val;
+			
 		}
 		
 		private void check_enabled()
@@ -445,6 +444,7 @@ namespace Windows {
 				this.btn_remove_repository.set_sensitive(false);
 				this.btn_edit_repository.set_sensitive(false);
 			}
+			
 		}
 		
 		private void on_response(Gtk.Dialog source, int response_id)
@@ -543,8 +543,8 @@ namespace Windows {
 		{
 			// That the repo name it's null means that we're
 			// creating a new repository form a path
+			t_repository_path.set_text(Repos.get( repository_name ));
 			t_repository_name.set_text( repository_name );
-			t_repository_path.set_text( Repos.groups.lookup( repository_name ));
 			
 		}
 	}

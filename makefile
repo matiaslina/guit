@@ -28,7 +28,7 @@ get_c_code:
 run: all
 	@echo " "
 	@echo "Running"
-	@./git-gui
+	@./$(EXEC)
 	@echo "Bye bye"
 
 clean:
