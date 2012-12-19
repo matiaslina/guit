@@ -1,12 +1,12 @@
 Linux git gui
 =============
 
-The name says everything. I'm making two sources with the same implementation, one in python and the other in vala ( Just to learn vala ).
+The name says everything. 
 
-Configuration
--------------
+Updates
+-------
+There's not will be any update or description until version 0.1 will be out. when this happens, I'll update all the necesary info here and in the wiki.
 
-Gonna make some things on `JSON`
 
 Author
 ------
