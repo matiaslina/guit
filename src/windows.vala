@@ -379,7 +379,7 @@ namespace Windows {
 			{
 				case Status.ADDING_REPO:
 					if ( aer_dialog == null)
-						aer_dialog = new RepoDialog();
+						aer_dialog = new RepoDialog( Status.ADDING_REPO);
 					aer_dialog.show_this_dialog();
 					
 					int response = aer_dialog.run();
@@ -398,7 +398,7 @@ namespace Windows {
 					break;
 				case Status.EDITING_REPO:
 					if ( aer_dialog == null )
-						aer_dialog = new RepoDialog( );
+						aer_dialog = new RepoDialog( Status.EDITING_REPO );
 					aer_dialog.show_this_dialog();
 					this.get_selected_repository( out name, Status.EDITING_REPO );
 					aer_dialog.set_editing( name );
@@ -413,7 +413,7 @@ namespace Windows {
 						Gtk.ListStore model = (Gtk.ListStore) repository_list.get_model();
 
 						model.get_iter(out iter, tree_path);
-						model.set(iter,0, /* name */, 1, /* path */);
+						model.set(iter,0, name, 1, Repos.get_info( name, "path"));
 					}
 					
 					break;
@@ -515,7 +515,7 @@ namespace Windows {
 	public class RepoDialog : Gtk.Dialog
 	{
 		
-		private int current_status;
+		private Status current_status;
 		
 		private Gtk.Entry t_repository_name;
 		private Gtk.Entry t_repository_path;
@@ -525,13 +525,15 @@ namespace Windows {
 		 * The parameter may be null because this set if we're
 		 * editing or creating a repository.
 		 */
-		public RepoDialog ()
+		public RepoDialog ( Status status )
 		{
 			
 			set_keep_above(true);
+			this.current_status = status;
 							
 			// Container
 			Gtk.Box this_container = get_content_area() as Gtk.Box;
+			
 			
 			// Creating some elements
 			Label l_name = new Label("Name:");
@@ -573,6 +575,9 @@ namespace Windows {
 					t_repository_name.set_text("");
 					t_repository_path.set_text("");
 					
+					if( current_status == Status.EDITING_REPO)
+						t_repository_name.set_sensitive( true );
+						
 					hide_all();
 					//destroy();
 					break;
@@ -592,8 +597,9 @@ namespace Windows {
 		{
 			// That the repo name it's null means that we're
 			// creating a new repository form a path
-			t_repository_path.set_text(Repos.get_info( repository_name, "path" ));
+			t_repository_name.set_sensitive(false);
 			t_repository_name.set_text( repository_name );
+			t_repository_path.set_text(Repos.get_info( repository_name, "path" ));
 			
 		}
 	}
