@@ -302,12 +302,13 @@ namespace Windows {
 			// Repo tree
 			Gtk.ListStore store = new Gtk.ListStore(2,typeof(string),typeof(string));
 			Gtk.TreeIter iter;
-						
-			for( int i=0 ; i < 3; i++)
+			
+			for( int i=0 ; i < Repos.repositories.length; i++)
 			{
 				// Here is the error.
-				string key = Repos.get_keys().nth_data(i);
-				string val = Repos.get(key);
+				string key = Repos.repositories[i];
+				string val = Repos.get_info( key, "path");
+				stdout.printf("Key: %s\tValue: %s\n", key, val);
 				store.append( out iter );
 				store.set(iter,0, key, 1, val);
 			}			
@@ -543,7 +544,7 @@ namespace Windows {
 		{
 			// That the repo name it's null means that we're
 			// creating a new repository form a path
-			t_repository_path.set_text(Repos.get( repository_name ));
+			t_repository_path.set_text(Repos.get_info( repository_name, "path" ));
 			t_repository_name.set_text( repository_name );
 			
 		}

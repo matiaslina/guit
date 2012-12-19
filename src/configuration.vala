@@ -55,26 +55,22 @@ namespace Configuration
 	{
 		// The key file
 		private KeyFile file;
-		
-		// groups in the file.
-		private HashTable<string,string> groups;
-		
+
+		public static string[] repositories;
+				
 		/**
 		 * Constructor of a new Repositories manager
 		 */
 		public Repositories( string where ) throws InvalidConfigError
 		{
-			groups = new HashTable<string,string>(str_hash,str_equal);
 			
 			try
 			{
 				file = new KeyFile();
 				file.load_from_file( where, KeyFileFlags.NONE);
-								
-				foreach( string group in file.get_groups())
+				repositories = file.get_groups();
+				foreach( unowned string group in repositories)
 				{
-					
-					groups.insert(group,file.get_string(group,"path"));
 					stdout.printf("group:%s\n", group);
 				}
 			}
@@ -118,9 +114,6 @@ namespace Configuration
 			string keyfile_str = file.to_data ();
 			try
 			{
-				this.groups.foreach((v,k) => {
-					stdout.printf("v:%s , k:%s",(string) v, (string) k);
-				});
 				FileUtils.set_contents(REPOSITORIES_PATH, keyfile_str);
 			}
 			catch (Error e)
@@ -135,21 +128,35 @@ namespace Configuration
 		 * Get the value from the key passed by parameter
 		 */
 		
-		public string get( string key )
+		public string? get_info( string group, string key )
 		{
-			stdout.printf("Getting value from key: [%s,%s]\n", key,this.groups.lookup(key));
-			return this.groups.lookup(key);
+			try
+			{
+				return file.get_string( group, key);
+			}
+			catch( Error e )
+			{
+				stderr.printf("%s\n", e.message);
+				return null;
+			}
+		}
+
+		/**
+		 * Retrieve the groups in the file.
+		 */
+		public string[] get_groups()
+		{
+			return this.file.get_groups();
+		}
+
+		/**
+		 * How much repositories are in the file.
+		 */
+		public int size()
+		{
+			return file.get_groups().length;
 		}
 		
-		public List<string> get_keys()
-		{
-			return this.groups.get_keys();
-		}
-		
-		public List<string> get_values()
-		{
-			return this.groups.get_values();
-		}
 		
 	} // End of Repositories class
 
