@@ -9,6 +9,7 @@ public static int main(string[] args) {
 	
 	Configuration.load_repos();
 	GitCore.load_repository("/home/matias/workspace/linux-git-gui");
+	GitCore.last_commit ();
 	
 	new Windows.MainWindow();
 	

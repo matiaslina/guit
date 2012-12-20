@@ -21,73 +21,47 @@
  */
 #include <stdio.h>
 #include <git2.h>
-#include "git_core.h"
-
-int show_branches(const char* branch_name, git_branch_t type, void *payload)
-{
-	if( branch_name != NULL ) {
-		printf("branch: %s\n", branch_name);
-		return 0;
-	}
-	return 1;
-}
-
-void
-core_retrive_all_branchs( git_repository *repo ) {
-	git_branch_foreach( repo, GIT_BRANCH_LOCAL, show_branches, NULL);
-}
-
-
 
 int main ( int argc, char** argv)
 {
 	git_repository *repo;
-	git_index *index;
-	unsigned int i, ecount;
-	char *dir = "/home/matias/workspace/linux-git-gui";
-	char out[41];
-	out[40] = '\0';
+	git_repository_open(&repo, "/home/matias/workspace/linux-git-gui/.git");
 	
-	if( argc > 1)
-		dir = argv[1];
-	if( argc > 2) {
-		fprintf(stderr, "usage: showindex [<repo-dir>]\n");
-		return 1;
-	}
+	git_commit *commit;
+	git_oid oid3;
 	
-	if ( git_repository_open_ext(&repo, dir, 0, NULL) < 0) {
-		fprintf(stderr, "Could not open repository: %s\n", dir);
-		return 1;
-	}
 	
-	git_repository_index(&index, repo);
-	git_index_read( index );
-	
-	ecount = git_index_entrycount( index );
-	if (!ecount)
-		printf("Empty index\n");
-		
-	for (i = 0; i < ecount; i += 1)
-	{
-		const git_index_entry *e = git_index_get_byindex(index, i);
+	unsigned char *data;
+	const char *str_type;
+	int error;
+	char *out;
 
-		git_oid_fmt(out, &e->oid);
+	git_oid_fromstr(&oid3, "802866f810fe5400a43d8b7dca521eeca9bf1c53");
 
-		printf("File Path: %s\n", e->path);
-		printf(" Stage: %d\n", git_index_entry_stage(e));
-		printf(" Blob SHA: %s\n", out);
-		printf("File Size: %d\n", (int)e->file_size);
-		printf(" Device: %d\n", (int)e->dev);
-		printf(" Inode: %d\n", (int)e->ino);
-		printf(" UID: %d\n", (int)e->uid);
-		printf(" GID: %d\n", (int)e->gid);
-		printf(" ctime: %d\n", (int)e->ctime.seconds);
-		printf(" mtime: %d\n", (int)e->mtime.seconds);
-		printf("\n");
+	error = git_commit_lookup(&commit, repo, &oid3);
+
+	const git_signature *author, *cmtter;
+	const char *message, *message_short;
+	time_t ctime;
+	unsigned int parents, p;
+
+	message  = git_commit_message(commit);
+	author   = git_commit_author(commit);
+	cmtter   = git_commit_committer(commit);
+	ctime    = git_commit_time(commit);
+
+	printf("Author: %s (%s)\n", author->name, author->email);
+
+	parents  = git_commit_parentcount(commit);
+	for (p = 0;p < parents;p++) {
+	  git_commit *parent;
+	  git_commit_parent(&parent, commit, p);
+	  git_oid_fmt(out, git_commit_id(parent));
+	  printf("Parent: %s\n", out);
+	  git_commit_free(parent);
 	}
-	
-	core_retrive_all_branchs(repo);
-	
-	git_index_free(index);
+
+	git_commit_free(commit);
 	git_repository_free(repo);
+
 }
