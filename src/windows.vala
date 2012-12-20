@@ -4,8 +4,7 @@
 */
 
 using Gtk;
-using WebKit;
-using Windows.Widget;
+using Widget;
 using Configuration;
 
 namespace Windows {
@@ -57,6 +56,7 @@ namespace Windows {
 
 		// Box that divides Webkit and buttons from left
 		private Gtk.VBox main_box;
+		private Gtk.HBox control_box;
 	
 		// Divide pane
 		private Gtk.HPaned main_pane;
@@ -66,17 +66,13 @@ namespace Windows {
 		private Gtk.MenuItem file_menu;
 		private Gtk.MenuItem preferences_menu;
 		private Gtk.MenuItem exit_menu;
-	
-		// the file tree
-		private VBox tree_view_container ;
-		private Label tree_view_title;
-		private ScrolledWindow scrolled_window_files;
-		private FileTree tree_view;
-	
-		// The webview.
-		private ScrolledWindow scrolled_window_webview;
-		private WebView web_view;
 		
+		// Top controls
+		private Widget.BranchList branch_list;
+		private Button do_pull;
+		private Button do_push;
+	
+			
 		// Dialogs
 		private Preferences preferences;
 	
@@ -117,38 +113,22 @@ namespace Windows {
 		
 			// The containers
 			main_box = new Gtk.VBox(false, 0);
+			control_box = new Gtk.HBox(false, 0);
 			main_pane = new Gtk.HPaned ();
 			main_pane.set_position(200);
 
-			scrolled_window_files = new ScrolledWindow(null,null);
-			scrolled_window_files.set_policy( PolicyType.AUTOMATIC, PolicyType.AUTOMATIC );
-			tree_view_container = new VBox(false, 3);
-		
-			scrolled_window_webview = new ScrolledWindow(null,null);
+			// Top controls
+			branch_list = new BranchList();
+			do_push = new Button.with_label("Push");
+			do_pull = new Button.with_label("Pull");
+			control_box.pack_start( branch_list, true, true , 0);
+			control_box.pack_start( do_pull, false, true, 4);
+			control_box.pack_start( do_push, false, true, 4);
 			
-			// Should change the policytype on the first parameter
-			// to some config.
-			scrolled_window_webview.set_policy( PolicyType.NEVER, PolicyType.AUTOMATIC );
-		
-			// The file tree
-			tree_view_title = new  Label.with_mnemonic("Files.");
-			tree_view = new FileTree();
-			scrolled_window_files.add( tree_view );
-			tree_view_container.pack_start(tree_view_title, false, false, 3);
-			tree_view_container.pack_start(scrolled_window_files, true, true ,0);
-		
-		
-		
-			// The webview 
-			web_view = new WebView();
-			scrolled_window_webview.add( web_view );
-		
-			main_pane.pack1( tree_view_container, true, false );
-			main_pane.pack2( scrolled_window_webview, true,true );
-		
-		
+			
 			// The main box.
 			main_box.pack_start ( bar, false, false, 0);
+			main_box.pack_start ( control_box, false,false, 3);
 			main_box.pack_start ( main_pane , true, true, 0 );
 		
 			// menu_box.pack_start( menu, true, true, 0);
@@ -164,7 +144,6 @@ namespace Windows {
 			this.destroy.connect ( this.close_window );
 			this.preferences_menu.activate.connect(this.show_preferences);
 			this.exit_menu.activate.connect(this.close_window);
-			this.tree_view.cursor_changed.connect( this.load_file_in_webview);
 		}
 		
 		/*
@@ -177,78 +156,6 @@ namespace Windows {
 				preferences = new Preferences();
 			else
 				preferences.show_preferences();	
-		}
-		
-		// This will return the path of the selected item in the tree_view
-		private string get_selected_path() {
-		
-			string path = this.tree_view.repo_path;
-		
-			// Get the path of the selected item.
-			Gtk.TreePath tree_path;
-			this.tree_view.get_cursor( out tree_path, null);
-			var model = this.tree_view.get_model();
-		
-			// Splits the tree_path to get the full path of the file 
-			string[] path_items = tree_path.to_string().split(":");
-		
-
-			for( int i = 0; i < path_items.length ; i++ ) 
-			{
-				Value val;
-				Gtk.TreeIter iter;
-				string string_path = "";
-
-				// Iteration over the splited path.
-				// i.e. 1) 0 , 2) 0:0 3) 0:0:0 ... and so on
-				for( int j = 0; j <= i ; j++) 
-				{
-					string_path += path_items[j];
-					if ( j != i ) 
-						string_path += ":";
-				}
-			
-				Gtk.TreePath aux_tree_path = new Gtk.TreePath.from_string(string_path);
-			
-				model.get_iter(out iter, aux_tree_path);
-				model.get_value(iter, 1, out val);
-			
-				path += "/" + (string) val;
-			}
-		
-			return path;
-		}
-	
-
-		// Loads the url into the webview.
-		public void load_file_in_webview () 
-		{
-			// Some inicializations.
-			Cancellable cancellable = null;
-			string code = "";
-		
-			try 
-			{	
-				File file = File.new_for_path( this.get_selected_path () );
-			
-				if( file.query_exists ( cancellable ) ) {
-					string line = "";
-					size_t s;
-					var dis = new DataInputStream( file.read(null) );
-				
-					while( cancellable.is_cancelled() == false && ((line = dis.read_line( out s, cancellable )) != null) ) 
-					{
-						code += line +"\n";
-					}
-				
-				}
-			} catch ( Error e) {
-				stderr.printf("Error: " + e.message );
-			} 
-		
-			// This load the code of the files into the webview. 
-			this.web_view.load_html_string( crearDom(code) , "file:///");
-		
 		}
 		
 		private void close_window()
@@ -604,4 +511,46 @@ namespace Windows {
 		}
 	}
 	
+	
+	
 }// end of Windows namespace
+
+namespace Widget {
+	
+		public class BranchList : Gtk.ComboBox {
+	
+			public BranchList() {
+								
+				// Get all local branches
+				
+				GitCore.for_local_branches((s) => {
+					TreeIter iter;
+					ListStore store = new ListStore(1, typeof(string) );
+					store.append( out iter );
+					store.set( iter, 0 , s);
+			
+					this.set_model( store );				
+				});
+				
+				/*
+				GitCore.Repository.for_each_branch(BranchType.LOCAL, (s) => {
+					TreeIter iter;
+					ListStore store = new ListStore(1, typeof(string) );
+					store.append( out iter );
+					store.set( iter, 0 , s);
+			
+					this.set_model( store );
+			
+					return 0;				
+				});
+				*/	
+		
+				Gtk.CellRendererText cell = new CellRendererText();
+				this.pack_start(cell, true);
+				this.add_attribute(cell, "text", 0);
+				this.active = 0;
+		
+			}
+	
+		}
+	}// End of Widgets namespace

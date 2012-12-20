@@ -1,12 +1,14 @@
 using Gtk;
 using Windows;
 using Configuration;
+using GitCore;
 
 public static int main(string[] args) {
 	Gtk.init(ref args);
 	
 	
 	Configuration.load_repos();
+	GitCore.load_repository("/home/matias/workspace/linux-git-gui");
 	
 	new Windows.MainWindow();
 	

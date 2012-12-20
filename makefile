@@ -11,7 +11,7 @@ ADITIONAL_PACKAGES = --vapidir ./vapi \
 FILES = \
 	src/main.vala \
 	src/windows.vala \
-	src/FileTree.vala \
+	src/core.vala \
 	src/configuration.vala \
 
 EXEC = guit
