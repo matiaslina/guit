@@ -1,5 +1,4 @@
 using Git;
-using Gtk;
 
 namespace GitCore {
 
@@ -63,11 +62,7 @@ namespace GitCore {
 			Git.object_id.from_string( out oid, str);
 
 			current_repository.lookup_commit( out commit, oid);
-
-			// Just for debug.
-			stdout.printf("Debug: uid --> %s\n", str);
-			stdout.printf("Author: %s (%s)\nMessage: %s\n", commit.author.name, commit.author.email, commit.message);
-
+			
 			return commit;
 		}
 		catch (CoreError e)
@@ -78,26 +73,32 @@ namespace GitCore {
 	}
 
 	public static List<CommitInfo?>
-	all_commits ()
+	all_commits ( string branch )
 	{
 		List<CommitInfo?> commit_list = new List<CommitInfo?>();
 
 		try
 		{
+			// Initialization
 			string hex_oid;
 			Git.Commit commit;
 			Git.object_id oid;
 			GitCore.CommitInfo info;
 
-			hex_oid = GitCore.uid("master");
+			// Getting the string oid from the branch passed by parameter.
+			hex_oid = GitCore.uid( branch );
 
+			// Get the object_id
 			Git.object_id.from_string( out oid, hex_oid);
 
+			// Out the last commit.
 			current_repository.lookup_commit( out commit, oid);
 			
+			// If it's nulls, then there are no more
+			// Commits
 			while( commit != null )
 			{
-				// Fill all the usefull info.
+				// Fill all the info into the struct.
 				info = CommitInfo() {
 					message = commit.message,
 					author = commit.author.name,
@@ -105,11 +106,11 @@ namespace GitCore {
 					time = commit.time,
 					offset_time = commit.time_offset
 				};
+
 				commit_list.append( info );
 
-				oid = commit.parents.get(0);
-
-				current_repository.lookup_commit( out commit, oid);
+				// Lookup for the next commit.
+				commit.parents.lookup( out commit, 0);
 			}
 
 		} 

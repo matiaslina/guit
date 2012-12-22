@@ -4,8 +4,10 @@
 */
 
 using Gtk;
+using Pango;
 using Widget;
 using Configuration;
+using GitCore;
 
 namespace Windows {
 
@@ -71,6 +73,10 @@ namespace Windows {
 		private Widget.BranchList branch_list;
 		private Button do_pull;
 		private Button do_push;
+
+		// Commit tree
+		private ScrolledWindow commit_tree_container;
+		private CommitTree commit_tree;
 	
 			
 		// Dialogs
@@ -124,6 +130,17 @@ namespace Windows {
 			control_box.pack_start( branch_list, true, true , 0);
 			control_box.pack_start( do_pull, false, true, 4);
 			control_box.pack_start( do_push, false, true, 4);
+
+			// Commit tree
+			
+			commit_tree_container = new ScrolledWindow(null, null);
+			commit_tree_container.set_policy( PolicyType.AUTOMATIC, PolicyType.AUTOMATIC );
+			commit_tree_container.set_shadow_type( ShadowType.IN);
+
+			// now we set to master branch. will change later
+			this.commit_tree = new CommitTree("master");
+			commit_tree_container.add( commit_tree );
+			main_pane.pack1( commit_tree_container , true, true);
 			
 			
 			// The main box.
@@ -163,6 +180,7 @@ namespace Windows {
 			Gtk.main_quit(); 
 		} 
 	
+
 	} // End of class Main Window
 
 
@@ -517,9 +535,11 @@ namespace Windows {
 
 namespace Widget {
 	
-		public class BranchList : Gtk.ComboBox {
+		public class BranchList : Gtk.ComboBox 
+		{
 	
-			public BranchList() {
+			public BranchList() 
+			{
 								
 				// Get all local branches
 				
@@ -531,20 +551,7 @@ namespace Widget {
 			
 					this.set_model( store );				
 				});
-				
-				/*
-				GitCore.Repository.for_each_branch(BranchType.LOCAL, (s) => {
-					TreeIter iter;
-					ListStore store = new ListStore(1, typeof(string) );
-					store.append( out iter );
-					store.set( iter, 0 , s);
-			
-					this.set_model( store );
-			
-					return 0;				
-				});
-				*/	
-		
+						
 				Gtk.CellRendererText cell = new CellRendererText();
 				this.pack_start(cell, true);
 				this.add_attribute(cell, "text", 0);
@@ -552,5 +559,62 @@ namespace Widget {
 		
 			}
 	
+		}
+
+		public class CommitTree : Gtk.TreeView
+		{
+			public CommitTree( string? branch )
+			{
+
+				this.set_headers_visible( false );
+
+				if ( branch == null )
+					branch = "master";
+
+				uint i;
+				CellRendererText cell;
+				
+				TreeViewColumn column = new TreeViewColumn();
+				column.set_title("");
+
+				Gtk.TreeIter iter; 
+				Gtk.ListStore store = new Gtk.ListStore(2, typeof(string), typeof(string));
+				List<CommitInfo?> commit_info = GitCore.all_commits( branch );
+
+
+
+				for( i = 0 ; i < commit_info.length(); i++)
+				{
+					string text = "";
+					string time_str = "";
+					
+					// Author and commit
+					text = "%s\n%s".printf(commit_info.nth_data(i).author, commit_info.nth_data(i).message);
+
+					// Time
+					time_t ts = (time_t) commit_info.nth_data(i).time;
+					var t = Time.gm ( ts );
+					time_str = "<span>%s %s</span>".printf(t.format("%b %d, %Y").to_string(), t.format("%H:%M").to_string());
+
+
+					store.append( out iter );
+					store.set(iter,
+							0, text,
+							1, time_str);
+				}
+
+				cell = new CellRendererText();
+				column.pack_start(cell, true);
+				column.add_attribute(cell, "text", 0);
+
+				cell = new CellRendererText();
+				cell.underline_style = Pango.Underline.SINGLE;
+				column.pack_start(cell, true);
+				column.add_attribute(cell, "text", 1);
+
+				this.append_column(column);
+
+				this.set_model( store );
+			}
 		}
 	}// End of Widgets namespace

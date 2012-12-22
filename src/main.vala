@@ -11,6 +11,8 @@ public static int main(string[] args) {
 	GitCore.load_repository("/home/matias/workspace/linux-git-gui");
 	GitCore.last_commit ();
 	
+	
+
 	new Windows.MainWindow();
 	
 	Gtk.main();
