@@ -3,12 +3,27 @@ using Gtk;
 
 namespace GitCore {
 
-	errordomain InvalidRepositoryError
+	errordomain CoreError
 	{
 		INVALID_REPO_PATH,
+		NULL_COMMIT,
 	}
-	
-	public delegate void StringIterator( string s);
+	/**
+	 * StringIterator. This delegate takes a string
+	 * to iter over some list, array, or somethings
+	 * like that.
+	 */
+	public delegate void StringIterator( string s );
+
+	//Struct with the info of the commit.
+	public struct CommitInfo
+	{
+		public string message;
+		public string author;
+		public string email;
+		public int64 time;
+		public int offset_time;
+	}
 
 	// One instance for the repository.
 	private static Git.Repository current_repository;
@@ -21,7 +36,7 @@ namespace GitCore {
 	
 	public static void for_local_branches( StringIterator f)
 	{
-		
+		// Iteration over all the local branches
 		current_repository.for_each_branch( BranchType.LOCAL, (branch_name, type) => {
 			if ( branch_name == null)
 				return 1;
@@ -30,16 +45,20 @@ namespace GitCore {
 		});
 	}
 
+	/**
+	 * Return the last commit.
+	 */
+
 	public static Commit?
 	last_commit ()
 	{
 		try
 		{
-			string str = GitCore.uid("master");
-			uint parents, p;
-
 			Git.Commit commit;
 			Git.object_id oid;
+
+			// get the oid fromthe file.
+			string str = GitCore.uid("master");		
 
 			Git.object_id.from_string( out oid, str);
 
@@ -51,18 +70,66 @@ namespace GitCore {
 
 			return commit;
 		}
-		catch (InvalidRepositoryError e)
+		catch (CoreError e)
 		{
 			stderr.printf(e.message);
 			return null;
 		}
-
-		
 	}
 
-	private string? 
-	uid (string branch) throws InvalidRepositoryError
+	public static List<CommitInfo?>
+	all_commits ()
 	{
+		List<CommitInfo?> commit_list = new List<CommitInfo?>();
+
+		try
+		{
+			string hex_oid;
+			Git.Commit commit;
+			Git.object_id oid;
+			GitCore.CommitInfo info;
+
+			hex_oid = GitCore.uid("master");
+
+			Git.object_id.from_string( out oid, hex_oid);
+
+			current_repository.lookup_commit( out commit, oid);
+			
+			while( commit != null )
+			{
+				// Fill all the usefull info.
+				info = CommitInfo() {
+					message = commit.message,
+					author = commit.author.name,
+					email = commit.author.email,
+					time = commit.time,
+					offset_time = commit.time_offset
+				};
+				commit_list.append( info );
+
+				oid = commit.parents.get(0);
+
+				current_repository.lookup_commit( out commit, oid);
+			}
+
+		} 
+		catch( CoreError e) 
+		{
+			stderr.printf(e.message);
+		}
+
+		return commit_list;
+	}
+
+	/**
+	 * Retrive the oid from the head.
+	 */
+	private string? 
+	uid (string branch) throws CoreError
+	{
+
+		// Some initialization
+
 		string uid;
 		string path_to_branch_file = "%s/refs/heads/%s".printf(current_repository.path,branch);
 		try
@@ -72,8 +139,8 @@ namespace GitCore {
 		catch ( FileError e)
 		{
 			stderr.printf("Cannot take the HEAD uid form file %s\n", path_to_branch_file);
-			throw new InvalidRepositoryError.INVALID_REPO_PATH(e.message);
-		}
+			throw new CoreError.INVALID_REPO_PATH(e.message);
+		}	
 
 		return uid;
 	}

@@ -1,3 +1,5 @@
+NULL =
+
 PACKAGES = \
 	--pkg gtk+-2.0 \
 	--pkg webkit-1.0 \
@@ -14,6 +16,12 @@ FILES = \
 	src/core.vala \
 	src/configuration.vala \
 
+C_FILES = \
+	src/main.c \
+	src/windows.c \
+	src/core.c \
+	src/configuration.c \
+
 EXEC = guit
 
 all:
@@ -23,7 +31,7 @@ all:
 
 
 get_c_code:
-	valac main.vala windows.vala FileTree.vala $(OPTIONS) -C
+	valac $(FILES) $(PACKAGES) $(ADITIONAL_PACKAGES) -C
 
 run: all
 	@echo " "
@@ -37,3 +45,6 @@ reset-config:
 
 clean:
 	rm $(EXEC)
+
+clean_c_code:
+	rm $(C_FILES)
