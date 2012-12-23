@@ -11,7 +11,7 @@ using GitCore;
 
 namespace Windows {
 
-	
+	/*
 	string crearDom(string code) 
 	{
 		return """
@@ -41,7 +41,7 @@ namespace Windows {
 			</html>
 			""";
 	}
-	
+	*/
 	// what we are doing
 	public static enum Status 
 	{
@@ -346,7 +346,6 @@ namespace Windows {
 					this.get_selected_repository(out name, Status.REMOVING_REPO );
 				
 					stdout.printf("name: %s\n",name);
-	
 					if( name != null)
 					{
 						try

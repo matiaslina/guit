@@ -33,6 +33,9 @@ namespace GitCore {
 		Git.Repository.open( out current_repository , path );
 	}
 	
+	/**
+	 * Retrive all the local branches from the repository.
+	 */
 	public static void for_local_branches( StringIterator f)
 	{
 		// Iteration over all the local branches
@@ -40,6 +43,20 @@ namespace GitCore {
 			if ( branch_name == null)
 				return 1;
 			f( branch_name );
+			return 0;
+		});
+	}
+
+	/**
+	 * Same as above. the only diference it's that this
+	 * iterate over all the remote branches.
+	 */
+	public static void for_remotes_branches( StringIterator f)
+	{
+		current_repository.for_each_branch( BranchType.REMOTE, (branch_name, type) => {
+			if ( branch_name == null)
+				return 0;
+			f(branch_name);
 			return 0;
 		});
 	}
