@@ -70,9 +70,11 @@ namespace Windows {
 		private Gtk.MenuItem exit_menu;
 		
 		// Top controls
-		private Widget.BranchList branch_list;
+		private Widget.BranchList local_branch_list;
 		private Button do_pull;
 		private Button do_push;
+		private Widget.BranchList remote_branch_list;
+		private Button do_commit;
 
 		// Commit tree
 		private ScrolledWindow commit_tree_container;
@@ -124,12 +126,17 @@ namespace Windows {
 			main_pane.set_position(200);
 
 			// Top controls
-			branch_list = new BranchList();
+			local_branch_list = new BranchList( Git.BranchType.LOCAL);
 			do_push = new Button.with_label("Push");
 			do_pull = new Button.with_label("Pull");
-			control_box.pack_start( branch_list, true, true , 0);
+			remote_branch_list = new BranchList( Git.BranchType.REMOTE);
+			do_commit = new Button.with_label("Commit");
+
+			control_box.pack_start( local_branch_list, true, true , 0);
 			control_box.pack_start( do_pull, false, true, 4);
 			control_box.pack_start( do_push, false, true, 4);
+			control_box.pack_start( remote_branch_list, true,true, 0);
+			control_box.pack_start( do_commit, false, true, 0);
 
 			// Commit tree
 			
@@ -543,14 +550,16 @@ namespace Widget {
 			{
 				if ( t == null )
 					this.branch_type = Git.BranchType.LOCAL;
+				else
+					this.branch_type = t;
 
 				ListStore store = new ListStore(1, typeof(string) );
 				this.set_model(store);
 				
 				// Get all local branches
-				if( t == Git.BranchType.LOCAL)
+				if( this.branch_type == Git.BranchType.LOCAL)
 					GitCore.for_local_branches( fill_store );
-				else if ( t == Git.BranchType.REMOTE )
+				else if ( this.branch_type == Git.BranchType.REMOTE )
 					GitCore.for_remotes_branches( fill_store );
 						
 				Gtk.CellRendererText cell = new CellRendererText();
@@ -563,9 +572,9 @@ namespace Widget {
 			public void reload_branch_list()
 			{
 
-				if( t == Git.BranchType.LOCAL)
+				if( this.branch_type == Git.BranchType.LOCAL)
 					GitCore.for_local_branches( fill_store );
-				else if ( t == Git.BranchType.REMOTE )
+				else if ( this.branch_type == Git.BranchType.REMOTE )
 					GitCore.for_remotes_branches( fill_store );
 			}
 
