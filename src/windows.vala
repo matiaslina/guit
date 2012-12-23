@@ -536,20 +536,22 @@ namespace Widget {
 	
 		public class BranchList : Gtk.ComboBox 
 		{
+
+			private Git.BranchType branch_type;
 	
-			public BranchList() 
+			public BranchList( Git.BranchType? t = null ) 
 			{
-								
-				// Get all local branches
+				if ( t == null )
+					this.branch_type = Git.BranchType.LOCAL;
+
+				ListStore store = new ListStore(1, typeof(string) );
+				this.set_model(store);
 				
-				GitCore.for_local_branches((s) => {
-					TreeIter iter;
-					ListStore store = new ListStore(1, typeof(string) );
-					store.append( out iter );
-					store.set( iter, 0 , s);
-			
-					this.set_model( store );				
-				});
+				// Get all local branches
+				if( t == Git.BranchType.LOCAL)
+					GitCore.for_local_branches( fill_store );
+				else if ( t == Git.BranchType.REMOTE )
+					GitCore.for_remotes_branches( fill_store );
 						
 				Gtk.CellRendererText cell = new CellRendererText();
 				this.pack_start(cell, true);
@@ -557,6 +559,28 @@ namespace Widget {
 				this.active = 0;
 		
 			}
+
+			public void reload_branch_list()
+			{
+
+				if( t == Git.BranchType.LOCAL)
+					GitCore.for_local_branches( fill_store );
+				else if ( t == Git.BranchType.REMOTE )
+					GitCore.for_remotes_branches( fill_store );
+			}
+
+			// The delegate
+			private void fill_store( string g )
+			{
+				ListStore store = (ListStore) this.get_model();
+				TreeIter iter;
+
+				store.append( out iter );
+				store.set( iter, 0 , g);
+		
+				this.set_model( store );
+			} 
+
 	
 		}
 
