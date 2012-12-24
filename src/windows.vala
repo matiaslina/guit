@@ -244,7 +244,8 @@ namespace Windows {
 				stdout.printf("Key: %s\tValue: %s\n", key, val);
 				store.append( out iter );
 				store.set(iter,0, key, 1, val);
-			}			
+			}
+			
 			repository_list = new Gtk.TreeView.with_model(store);
 			CellRendererText cell = new CellRendererText();
 			repository_list.insert_column_with_attributes(-1, "Name",cell,"text",0);

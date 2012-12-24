@@ -163,6 +163,40 @@ namespace GitCore {
 		return uid;
 	}
 	
+	/**
+	 * This are just for testing.
+	 */
+	public static void test_tree ()
+	{
+		Git.Commit commit = last_commit();
+		Git.object_id o = commit.id;
+		Git.Tree tree;
+		
+		commit.lookup_tree( out tree);
+		
+		Git.object_id t = tree.id;
+		
+		Git.TreeWalker tree_walker = cb;
+		
+		tree.walk( tree_walker, Git.WalkMode.PRE);
+		
+		stdout.printf("oid: %s\n", o.to_string());
+		stdout.printf("tree oid: %s\n", t.to_string());
+		
+	}
+	
+	private int cb ( string root, Git.TreeEntry entry )
+	{
+
+		stdout.printf("----------------------------\nroot: %s\nentry: %s\n",
+			root, entry.name);
+		return 0;
+	}
+	
+	
+	
+	
+	
 }
 
 

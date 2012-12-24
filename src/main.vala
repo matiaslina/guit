@@ -11,7 +11,7 @@ public static int main(string[] args) {
 	GitCore.load_repository("/home/matias/workspace/linux-git-gui");
 	GitCore.last_commit ();
 	
-	
+	GitCore.test_tree(0);
 
 	new Windows.MainWindow();
 	
