@@ -86,6 +86,7 @@ namespace Configuration
 		public void add_repository( string name, string path )
 		{
 			file.set_string(name,"path", path);
+			file.set_boolean(name,"last_used",false);
 		}
 		
 		/**
@@ -138,6 +139,19 @@ namespace Configuration
 			{
 				stderr.printf("%s\n", e.message);
 				return null;
+			}
+		}
+		
+		public bool get_active ( string group )
+		{
+			try
+			{
+				return file.get_boolean( group, "last_used");
+			}
+			catch( Error e)
+			{
+				stderr.printf("%s\n",e.message);
+				return false;
 			}
 		}
 

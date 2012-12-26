@@ -70,6 +70,7 @@ namespace Windows {
 		private Gtk.MenuItem exit_menu;
 		
 		// Top controls
+		private Widget.RepositoriesList repositories_list;
 		private Widget.BranchList local_branch_list;
 		private Button do_pull;
 		private Button do_push;
@@ -89,7 +90,7 @@ namespace Windows {
 		 */
 		public MainWindow() {
 			
-			set_default_size (800,600);
+			set_default_size (1024,600);
 			this.create_widgets ();
 			this.connect_signals ();
 			show_all();
@@ -126,12 +127,14 @@ namespace Windows {
 			main_pane.set_position(200);
 
 			// Top controls
+			repositories_list = new RepositoriesList();
 			local_branch_list = new BranchList( Git.BranchType.LOCAL);
 			do_push = new Button.with_label("Push");
 			do_pull = new Button.with_label("Pull");
 			remote_branch_list = new BranchList( Git.BranchType.REMOTE);
 			do_commit = new Button.with_label("Commit");
 
+			control_box.pack_start( repositories_list, false, false, 4);
 			control_box.pack_start( local_branch_list, true, true , 0);
 			control_box.pack_start( do_pull, false, true, 4);
 			control_box.pack_start( do_push, false, true, 4);
@@ -167,6 +170,7 @@ namespace Windows {
 		private void connect_signals() {
 			this.destroy.connect ( this.close_window );
 			this.local_branch_list.changed.connect( this.change_commit_list );
+			this.repositories_list.changed.connect( this.change_repository );
 			this.preferences_menu.activate.connect(this.show_preferences);
 			this.exit_menu.activate.connect(this.close_window);
 		}
@@ -186,14 +190,47 @@ namespace Windows {
 			// Get the selected index in the local branchs
 			int selected_branch_index = local_branch_list.get_active();
 			
-			// Get the value
-			path = new Gtk.TreePath.from_indices( selected_branch_index );
-			store.get_iter( out iter, path);
-			store.get_value( iter, 0, out branch_name );
+			if( selected_branch_index > -1 )
+			{
+				// Get the value
+				path = new Gtk.TreePath.from_indices( selected_branch_index );
+				store.get_iter( out iter, path);
+				store.get_value( iter, 0, out branch_name );
 						
-			// And reloads the commit list. awesome, right? :P
-			this.commit_tree.load_commit_list( (string) branch_name );
+				// And reloads the commit list. awesome, right? :P
+				this.commit_tree.load_commit_list( (string) branch_name );
+			}		
+		
+		}
+		
+		private void change_repository ()
+		{
+			// Initializations
+			string path;
+			GLib.Value repo_name;
+			TreeIter iter;
+			TreePath tree_path;
+			ListStore store = (ListStore) repositories_list.get_model();
 			
+			// Get the selected index in the local branchs
+			int selected_branch_index = repositories_list.get_active();
+			
+			// Get the value
+			tree_path = new Gtk.TreePath.from_indices( selected_branch_index );
+			store.get_iter( out iter, tree_path);
+			store.get_value( iter, 0, out repo_name );
+			
+			path = Configuration.Repos.get_info( (string) repo_name, "path");
+			
+			if( path == null )
+				return;
+			
+			// Load the repository
+			GitCore.load_repository( path );
+			
+			// Modify all the data in the window.
+			local_branch_list.reload_branch_list();
+			remote_branch_list.reload_branch_list();
 		}
 
 		private void show_preferences()
@@ -574,26 +611,35 @@ namespace Widget {
 				ListStore store = new ListStore(1, typeof(string) );
 				this.set_model(store);
 				
+				Gtk.CellRendererText cell = new CellRendererText();
+				this.pack_start(cell, true);
+				this.add_attribute(cell, "text", 0);
+				
+				
 				// Get all local branches
 				if( this.branch_type == Git.BranchType.LOCAL)
 					GitCore.for_local_branches( fill_store );
 				else if ( this.branch_type == Git.BranchType.REMOTE )
 					GitCore.for_remotes_branches( fill_store );
-						
-				Gtk.CellRendererText cell = new CellRendererText();
-				this.pack_start(cell, true);
-				this.add_attribute(cell, "text", 0);
+					
 				this.active = 0;
 		
 			}
 
 			public void reload_branch_list()
 			{
-
+				this.clear_list();
 				if( this.branch_type == Git.BranchType.LOCAL)
 					GitCore.for_local_branches( fill_store );
 				else if ( this.branch_type == Git.BranchType.REMOTE )
 					GitCore.for_remotes_branches( fill_store );
+				this.active = 0;
+			}
+			
+			private void clear_list()
+			{
+				ListStore store = (ListStore) this.get_model();
+				store.clear();
 			}
 
 			// The delegate
@@ -634,10 +680,6 @@ namespace Widget {
 				column.pack_start(cell, true);
 				column.add_attribute(cell, "text", 0);
 
-				cell = new CellRendererText();
-				column.pack_start(cell, true);
-				column.add_attribute(cell, "text", 1);
-
 				this.append_column(column);
 
 			}
@@ -657,18 +699,19 @@ namespace Widget {
 				{
 					string text = "";
 					string time_str = "";
-					
-					// Author and commit
-					text = "%s\n%s".printf(commit_info.nth_data(i).author, commit_info.nth_data(i).message);
-
 					// Time
 					time_t ts = (time_t) commit_info.nth_data(i).time;
 					var t = Time.gm ( ts );
 					time_str = "%s %s".printf(t.format("%b %d, %Y").to_string(), t.format("%H:%M").to_string());
+					
+					// Author and commit
+					text = "%s\t\t%s\n%s".printf(commit_info.nth_data(i).author,time_str, commit_info.nth_data(i).message);
+
+					
 
 
 					store.append( out iter );
-					store.set(iter, 0, text, 1, time_str);
+					store.set(iter, 0, text);
 					
 					
 				}
@@ -676,5 +719,50 @@ namespace Widget {
 				this.set_model( store );
 
 			}
+		}
+		
+		public class RepositoriesList : Gtk.ComboBox
+		{
+			public RepositoriesList ()
+			{
+				ListStore store = new ListStore(1, typeof(string));
+				this.set_model( store );
+				
+				// The columns
+				CellRendererText cell;
+				
+				cell = new CellRendererText();
+				this.pack_start(cell, true);
+				this.add_attribute(cell, "text", 0);
+				
+				load_repo_list();
+				
+			}
+			
+			public void load_repo_list()
+			{
+				string[] repositories = Configuration.Repos.get_groups();
+				ListStore store = (ListStore) this.get_model();
+				TreeIter iter;
+				int p = 0;
+				bool already_taken = false;
+				
+				foreach( unowned string name in repositories )
+				{
+					store.append( out iter );
+					store.set( iter, 0 , name);
+					
+					if( Configuration.Repos.get_active( name ) )
+						already_taken = true;
+						
+					if ( ! already_taken )
+						p++;
+					
+				}
+				
+				this.set_model( store );
+				this.active = p;
+				
+			} 
 		}
 	}// End of Widgets namespace
