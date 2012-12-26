@@ -2225,7 +2225,6 @@ namespace Git {
 
 		/**
 		 * Look for a git repository and copy its path in the given buffer. The lookup start
-		 * from base_path and walk across parent directories if nothing has been found. The
 		 * lookup ends when the first repository is found, or when reaching a directory
 		 * referenced in ceiling_dirs or when the filesystem changes (in case across_fs
 		 * is true).
@@ -3798,7 +3797,7 @@ namespace Git {
 		 * @param mode Traversal mode (pre or post-order)
 		 * @return {@link Error.OK} or an error code
 		 */
-		[CCode(cname = "")]
+		[CCode(cname = "git_tree_walk")]
 		public Error walk( WalkMode mode, [CCode(delegate_target_pos = -1)] TreeWalker callback);
 	}
 
