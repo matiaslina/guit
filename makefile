@@ -1,7 +1,7 @@
 NULL =
 
 FLAGS = \
-	-X -w
+	-X -w \
 
 PACKAGES = \
 	--pkg glib-2.0 \

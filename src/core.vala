@@ -17,6 +17,7 @@ namespace GitCore {
 	//Struct with the info of the commit.
 	public struct CommitInfo
 	{
+		public Git.object_id ci_id;
 		public string message;
 		public string author;
 		public string email;
@@ -65,8 +66,7 @@ namespace GitCore {
 	 * Return the last commit.
 	 */
 
-	public static Commit?
-	last_commit ()
+	public static Commit? last_commit ()
 	{
 		try
 		{
@@ -89,8 +89,7 @@ namespace GitCore {
 		}
 	}
 
-	public static List<CommitInfo?>
-	all_commits ( string branch )
+	public static List<CommitInfo?> all_commits ( string branch )
 	{
 		List<CommitInfo?> commit_list = new List<CommitInfo?>();
 
@@ -117,6 +116,7 @@ namespace GitCore {
 			{
 				// Fill all the info into the struct.
 				info = CommitInfo() {
+					ci_id = commit.id,
 					message = commit.message,
 					author = commit.author.name,
 					email = commit.author.email,
@@ -163,16 +163,39 @@ namespace GitCore {
 		return uid;
 	}
 	
+	private void get_nth_tree( out Git.Tree tree, ref uint depth, string branch )
+	{
+		
+		// Get the commit list from the branch passed from parameter.
+		List<CommitInfo?> commit_info = all_commits( branch );
+		
+		// this variable d must be an existing index of commit info.
+		if( depth >= commit_info.length() )
+			depth = commit_info.length() - 1 ;
+		else if ( depth < 0 )
+			depth = 0;
+		
+		assert( 0 <= depth && depth < commit_info.length() );
+		
+		// Get the oid of the commit to lookup
+		Git.object_id commit_oid = commit_info.nth_data( depth ).ci_id;
+		
+		// lookup the commit
+		Commit commit;
+		current_repository.lookup_commit( out commit, commit_oid);
+		
+		// Get the tree
+		commit.lookup_tree( out tree);
+	}
+	
 	/**
 	 * This are just for testing.
 	 */
 	public static void test_tree ( uint depth )
 	{
-		Git.Commit commit = last_commit();
-		Git.object_id o = commit.id;
 		Git.Tree tree;
 		
-		commit.lookup_tree( out tree);
+		get_nth_tree( out tree, ref depth, "master" );
 		
 		Git.object_id t = tree.id;
 		
@@ -180,7 +203,6 @@ namespace GitCore {
 		
 		tree.walk( Git.WalkMode.PRE, tree_walker);
 		
-		stdout.printf("oid: %s\n", o.to_string());
 		stdout.printf("tree oid: %s\n", t.to_string());
 		
 	}

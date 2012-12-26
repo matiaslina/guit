@@ -11,7 +11,7 @@ public static int main(string[] args) {
 	GitCore.load_repository("/home/matias/workspace/guit");
 	GitCore.last_commit ();
 	
-	GitCore.test_tree(0);
+	GitCore.test_tree(40);
 
 	new Windows.MainWindow();
 	
