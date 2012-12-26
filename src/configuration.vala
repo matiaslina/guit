@@ -1,6 +1,6 @@
 namespace Configuration
 {
-	errordomain InvalidConfigError
+	public errordomain InvalidConfigError
 	{
 		INVALID_CONFIG,
 	}

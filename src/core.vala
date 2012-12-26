@@ -166,7 +166,7 @@ namespace GitCore {
 	/**
 	 * This are just for testing.
 	 */
-	public static void test_tree ()
+	public static void test_tree ( uint depth )
 	{
 		Git.Commit commit = last_commit();
 		Git.object_id o = commit.id;
@@ -178,7 +178,7 @@ namespace GitCore {
 		
 		Git.TreeWalker tree_walker = cb;
 		
-		tree.walk( tree_walker, Git.WalkMode.PRE);
+		tree.walk( Git.WalkMode.PRE, tree_walker);
 		
 		stdout.printf("oid: %s\n", o.to_string());
 		stdout.printf("tree oid: %s\n", t.to_string());

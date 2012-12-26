@@ -8,7 +8,7 @@ public static int main(string[] args) {
 	
 	
 	Configuration.load_repos();
-	GitCore.load_repository("/home/matias/workspace/linux-git-gui");
+	GitCore.load_repository("/home/matias/workspace/guit");
 	GitCore.last_commit ();
 	
 	GitCore.test_tree(0);

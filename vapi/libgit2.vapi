@@ -1273,7 +1273,7 @@ namespace Git {
 		 * @param n the position of the entry
 		 * @return the entry; null if out of bounds
 		 */
-		[CCode(cname = "git_index_get_byindex")]
+		[CCode(cname = "git_index_get")]
 		public unowned IndexEntry? get(size_t n);
 
 		/**
@@ -2193,7 +2193,7 @@ namespace Git {
 		 * into a normal repository, capable of performing all the common workdir
 		 * operations (checkout, status, index manipulation, etc).
 		 */
-		public abstract string? workdir {
+		public string? workdir {
 			[CCode(cname = "git_repository_workdir")]
 			get;
 			set {
@@ -3798,8 +3798,8 @@ namespace Git {
 		 * @param mode Traversal mode (pre or post-order)
 		 * @return {@link Error.OK} or an error code
 		 */
-		[CCode(cname = "git_tree_walk")]
-		public Error walk( [CCode ( pos = 1.1, delegate_target_pos = 1.2)] TreeWalker callback, [CCode(pos = 0.9)]WalkMode mode);
+		[CCode(cname = "")]
+		public Error walk( WalkMode mode, [CCode(delegate_target_pos = -1)] TreeWalker callback);
 	}
 
 	/**

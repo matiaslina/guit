@@ -43,7 +43,7 @@ namespace Windows {
 	}
 	*/
 	// what we are doing
-	public static enum Status 
+	public enum Status 
 	{
 		EDITING_REPO = 0,
 		ADDING_REPO,
@@ -57,11 +57,11 @@ namespace Windows {
 		
 
 		// Box that divides Webkit and buttons from left
-		private Gtk.VBox main_box;
-		private Gtk.HBox control_box;
+		private Gtk.Box main_box;
+		private Gtk.Box control_box;
 	
 		// Divide pane
-		private Gtk.HPaned main_pane;
+		private Gtk.Paned main_pane;
 	
 		// the menu
 		private Gtk.MenuBar bar;
@@ -120,9 +120,9 @@ namespace Windows {
 			// End of menu
 		
 			// The containers
-			main_box = new Gtk.VBox(false, 0);
-			control_box = new Gtk.HBox(false, 0);
-			main_pane = new Gtk.HPaned ();
+			main_box = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
+			control_box = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 0);
+			main_pane = new Gtk.Paned (Gtk.Orientation.HORIZONTAL);
 			main_pane.set_position(200);
 
 			// Top controls
@@ -210,7 +210,6 @@ namespace Windows {
 		{
 		
 			this.title = "Preferences";
-			this.border_width = 5;
 			set_default_size(650,450);
 			this.create_widgets();
 			this.connect_signals();
@@ -220,11 +219,11 @@ namespace Windows {
 		private void create_widgets()
 		{
 			// Containers
-			Gtk.Box this_container = get_content_area() as Gtk.Box;
+			Gtk.Box this_container = this.get_content_area() as Gtk.Box ;
 			// Main container for the repository list
-			HBox tree_container = new HBox(false, 0);
+			Box tree_container = new Box(Gtk.Orientation.VERTICAL, 0);
 			// Button containers
-			VBox button_tree_container = new VBox(false,0);
+			Box button_tree_container = new Box(Gtk.Orientation.VERTICAL,0);
 			notebook = new Gtk.Notebook();
 			
 			// Scrolled window for the repository list
@@ -280,8 +279,8 @@ namespace Windows {
 			
 			this_container.pack_start(notebook,true,true,1);
 			
-			add_button(STOCK_HELP, Gtk.ResponseType.HELP);
-			add_button(STOCK_CLOSE,Gtk.ResponseType.CLOSE);
+			add_button(Gtk.Stock.HELP, Gtk.ResponseType.HELP);
+			add_button(Gtk.Stock.CLOSE, Gtk.ResponseType.CLOSE);
 			
 		}
 		
@@ -417,7 +416,7 @@ namespace Windows {
 			switch( response_id )
 			{
 				case Gtk.ResponseType.CLOSE:
-					this.hide_all();
+					//this.hide_all();
 					break;
 				case Gtk.ResponseType.HELP:
 					// This show the help in here
@@ -480,8 +479,8 @@ namespace Windows {
 			this_container.pack_start(t_repository_path , true, true, 0);
 			
 			// Adds two buttons.
-			add_button(STOCK_OK, Gtk.ResponseType.OK);
-			add_button(STOCK_CANCEL, Gtk.ResponseType.CANCEL);
+			add_button(Gtk.Stock.OK, Gtk.ResponseType.OK);
+			add_button(Gtk.Stock.CANCEL, Gtk.ResponseType.CANCEL);
 			
 			// We connect some signals in a separated function
 			this.connect_signals();
@@ -510,11 +509,11 @@ namespace Windows {
 					if( current_status == Status.EDITING_REPO)
 						t_repository_name.set_sensitive( true );
 						
-					hide_all();
+					//this.hide_all();
 					//destroy();
 					break;
 				case Gtk.ResponseType.CANCEL:
-					hide_all();
+					//this.hide_all();
 					//destroy();
 					break;
 			}
@@ -627,7 +626,7 @@ namespace Widget {
 					// Time
 					time_t ts = (time_t) commit_info.nth_data(i).time;
 					var t = Time.gm ( ts );
-					time_str = "<span>%s %s</span>".printf(t.format("%b %d, %Y").to_string(), t.format("%H:%M").to_string());
+					time_str = "%s %s".printf(t.format("%b %d, %Y").to_string(), t.format("%H:%M").to_string());
 
 
 					store.append( out iter );
@@ -641,7 +640,6 @@ namespace Widget {
 				column.add_attribute(cell, "text", 0);
 
 				cell = new CellRendererText();
-				cell.underline_style = Pango.Underline.SINGLE;
 				column.pack_start(cell, true);
 				column.add_attribute(cell, "text", 1);
 

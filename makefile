@@ -1,12 +1,12 @@
 NULL =
 
+FLAGS = \
+	-X -w
+
 PACKAGES = \
 	--pkg glib-2.0 \
-	--pkg gtk+-2.0 \
-	--pkg webkit-1.0 \
-	--pkg gio-2.0 \
+	--pkg gtk+-3.0 \
 	--pkg gee-1.0 \
-	--pkg gdk-2.0 \
 	
 ADITIONAL_PACKAGES = --vapidir ./vapi \
 	--pkg libgit2 \
@@ -27,7 +27,7 @@ EXEC = guit
 
 all:
 	@echo "Compiling..."
-	valac $(FILES) $(PACKAGES) $(ADITIONAL_PACKAGES) -o $(EXEC)
+	valac $(FLAGS) $(FILES) $(PACKAGES) $(ADITIONAL_PACKAGES) -o $(EXEC)
 	@echo "Done!"
 
 
@@ -35,8 +35,8 @@ get_c_code:
 	valac $(FILES) $(PACKAGES) $(ADITIONAL_PACKAGES) -C
 
 run: all
-	@echo " "
 	@echo "Running"
+	@echo "Debug info:"
 	@./$(EXEC)
 	@echo "Bye bye"
 
