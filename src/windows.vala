@@ -166,6 +166,7 @@ namespace Windows {
 		// Gonna connect every widget in here
 		private void connect_signals() {
 			this.destroy.connect ( this.close_window );
+			this.local_branch_list.changed.connect( this.change_commit_list );
 			this.preferences_menu.activate.connect(this.show_preferences);
 			this.exit_menu.activate.connect(this.close_window);
 		}
@@ -173,6 +174,27 @@ namespace Windows {
 		/*
 		 * 	Signals
 		 */
+		 
+		private void change_commit_list ()
+		{
+			// Initializations
+			GLib.Value branch_name;
+			TreeIter iter;
+			TreePath path;
+			ListStore store = (ListStore) local_branch_list.get_model();
+			
+			// Get the selected index in the local branchs
+			int selected_branch_index = local_branch_list.get_active();
+			
+			// Get the value
+			path = new Gtk.TreePath.from_indices( selected_branch_index );
+			store.get_iter( out iter, path);
+			store.get_value( iter, 0, out branch_name );
+						
+			// And reloads the commit list. awesome, right? :P
+			this.commit_tree.load_commit_list( (string) branch_name );
+			
+		}
 
 		private void show_preferences()
 		{
@@ -599,11 +621,31 @@ namespace Widget {
 				if ( branch == null )
 					branch = "master";
 
-				uint i;
-				CellRendererText cell;
+				load_commit_list( branch );				
 				
+				// Columns
 				TreeViewColumn column = new TreeViewColumn();
 				column.set_title("");
+				
+				// Config of the cells
+				CellRendererText cell;
+				
+				cell = new CellRendererText();
+				column.pack_start(cell, true);
+				column.add_attribute(cell, "text", 0);
+
+				cell = new CellRendererText();
+				column.pack_start(cell, true);
+				column.add_attribute(cell, "text", 1);
+
+				this.append_column(column);
+
+			}
+			
+			public void load_commit_list( string branch )
+			{
+				uint i;
+				
 
 				Gtk.TreeIter iter; 
 				Gtk.ListStore store = new Gtk.ListStore(2, typeof(string), typeof(string));
@@ -626,22 +668,13 @@ namespace Widget {
 
 
 					store.append( out iter );
-					store.set(iter,
-							0, text,
-							1, time_str);
+					store.set(iter, 0, text, 1, time_str);
+					
+					
 				}
-
-				cell = new CellRendererText();
-				column.pack_start(cell, true);
-				column.add_attribute(cell, "text", 0);
-
-				cell = new CellRendererText();
-				column.pack_start(cell, true);
-				column.add_attribute(cell, "text", 1);
-
-				this.append_column(column);
-
+				
 				this.set_model( store );
+
 			}
 		}
 	}// End of Widgets namespace
