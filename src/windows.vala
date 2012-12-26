@@ -176,10 +176,7 @@ namespace Windows {
 
 		private void show_preferences()
 		{
-			if ( preferences == null )
-				preferences = new Preferences();
-			else
-				preferences.show_preferences();	
+			preferences = new Preferences();
 		}
 		
 		private void close_window()
@@ -310,8 +307,7 @@ namespace Windows {
 			switch( status )
 			{
 				case Status.ADDING_REPO:
-					if ( aer_dialog == null)
-						aer_dialog = new RepoDialog( Status.ADDING_REPO);
+					aer_dialog = new RepoDialog( Status.ADDING_REPO);
 					aer_dialog.show_this_dialog();
 					
 					int response = aer_dialog.run();
@@ -329,8 +325,7 @@ namespace Windows {
 					}
 					break;
 				case Status.EDITING_REPO:
-					if ( aer_dialog == null )
-						aer_dialog = new RepoDialog( Status.EDITING_REPO );
+					aer_dialog = new RepoDialog( Status.EDITING_REPO );
 					aer_dialog.show_this_dialog();
 					this.get_selected_repository( out name, Status.EDITING_REPO );
 					aer_dialog.set_editing( name );
@@ -417,6 +412,7 @@ namespace Windows {
 			{
 				case Gtk.ResponseType.CLOSE:
 					//this.hide_all();
+					destroy();
 					break;
 				case Gtk.ResponseType.HELP:
 					// This show the help in here
@@ -510,11 +506,11 @@ namespace Windows {
 						t_repository_name.set_sensitive( true );
 						
 					//this.hide_all();
-					//destroy();
+					destroy();
 					break;
 				case Gtk.ResponseType.CANCEL:
 					//this.hide_all();
-					//destroy();
+					destroy();
 					break;
 			}
 		}
