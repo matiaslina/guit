@@ -13,6 +13,7 @@ namespace GitCore {
 	 * like that.
 	 */
 	public delegate void StringIterator( string s );
+	public delegate void TreeIterator ( FileInfo i);
 
 	//Struct with the info of the commit.
 	public struct CommitInfo
@@ -23,6 +24,12 @@ namespace GitCore {
 		public string email;
 		public int64 time;
 		public int offset_time;
+	}
+	
+	public struct FileInfo
+	{
+		public string parent;
+		public string name;
 	}
 
 	// One instance for the repository.
@@ -142,8 +149,7 @@ namespace GitCore {
 	/**
 	 * Retrive the oid from the head.
 	 */
-	private string? 
-	uid (string branch) throws CoreError
+	private string? uid (string branch) throws CoreError
 	{
 
 		// Some initialization
@@ -187,6 +193,23 @@ namespace GitCore {
 		// Get the tree
 		commit.lookup_tree( out tree);
 	}
+	
+	public static void foreach_file_in_tree( uint depth, string branch, TreeIterator t )
+	{
+		Git.Tree tree;
+		get_nth_tree( out tree, ref depth, branch);
+		
+		tree.walk( Git.WalkMode.PRE, (r, e) => {
+			FileInfo info = FileInfo() {
+				parent = r,
+				name = e.name
+			};
+			
+			t( info );
+			return 0;
+		});
+	}
+	
 	
 	/**
 	 * This are just for testing.

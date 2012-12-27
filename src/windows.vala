@@ -81,6 +81,10 @@ namespace Windows {
 		private ScrolledWindow commit_tree_container;
 		private CommitTree commit_tree;
 	
+		// File tree for every commit
+		private Box right_container;
+		private ScrolledWindow commit_files_tree_container;
+		private TreeView commit_files_tree;
 			
 		// Dialogs
 		private Preferences preferences;
@@ -125,7 +129,7 @@ namespace Windows {
 			control_box = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 0);
 			main_pane = new Gtk.Paned (Gtk.Orientation.HORIZONTAL);
 			main_pane.set_position(200);
-
+			right_container = new Gtk.Box( Gtk.Orientation.VERTICAL, 3); 
 			// Top controls
 			repositories_list = new RepositoriesList();
 			local_branch_list = new BranchList( Git.BranchType.LOCAL);
@@ -151,7 +155,16 @@ namespace Windows {
 			this.commit_tree = new CommitTree("master");
 			commit_tree_container.add( commit_tree );
 			main_pane.pack1( commit_tree_container , true, true);
+
+			// Commit file tree view
+			commit_files_tree_container = new ScrolledWindow (null, null);
+			commit_files_tree_container.set_policy( PolicyType.AUTOMATIC,PolicyType.AUTOMATIC);
+			commit_files_tree = new TreeView ();
+			// We need to figure out how to fill this treeview ("¬.¬)
 			
+			commit_files_tree_container.add ( commit_files_tree );
+			right_container.pack_start( commit_files_tree_container, false, false, 0 );
+			main_pane.pack2( right_container, true, true );
 			
 			// The main box.
 			main_box.pack_start ( bar, false, false, 0);
@@ -190,6 +203,7 @@ namespace Windows {
 			// Get the selected index in the local branchs
 			int selected_branch_index = local_branch_list.get_active();
 			
+			// I will check if it's a valid index
 			if( selected_branch_index > -1 )
 			{
 				// Get the value
@@ -594,175 +608,180 @@ namespace Windows {
 	
 }// end of Windows namespace
 
-namespace Widget {
+namespace Widget 
+{
 	
-		public class BranchList : Gtk.ComboBox 
+	public class BranchList : Gtk.ComboBox 
+	{
+
+		private Git.BranchType branch_type;
+
+		public BranchList( Git.BranchType? t = null ) 
+		{
+			if ( t == null )
+				this.branch_type = Git.BranchType.LOCAL;
+			else
+				this.branch_type = t;
+
+			ListStore store = new ListStore(1, typeof(string) );
+			this.set_model(store);
+			
+			Gtk.CellRendererText cell = new CellRendererText();
+			this.pack_start(cell, true);
+			this.add_attribute(cell, "text", 0);
+			
+			
+			// Get all local branches
+			if( this.branch_type == Git.BranchType.LOCAL)
+				GitCore.for_local_branches( fill_store );
+			else if ( this.branch_type == Git.BranchType.REMOTE )
+				GitCore.for_remotes_branches( fill_store );
+				
+			this.active = 0;
+	
+		}
+
+		public void reload_branch_list()
+		{
+			this.clear_list();
+			if( this.branch_type == Git.BranchType.LOCAL)
+				GitCore.for_local_branches( fill_store );
+			else if ( this.branch_type == Git.BranchType.REMOTE )
+				GitCore.for_remotes_branches( fill_store );
+			this.active = 0;
+		}
+		
+		private void clear_list()
+		{
+			ListStore store = (ListStore) this.get_model();
+			store.clear();
+		}
+
+		// The delegate
+		private void fill_store( string g )
+		{
+			ListStore store = (ListStore) this.get_model();
+			TreeIter iter;
+
+			store.append( out iter );
+			store.set( iter, 0 , g);
+	
+			this.set_model( store );
+		} 
+
+
+	} // End of BranchList class
+
+	public class CommitTree : Gtk.TreeView
+	{
+		public CommitTree( string? branch )
 		{
 
-			private Git.BranchType branch_type;
-	
-			public BranchList( Git.BranchType? t = null ) 
-			{
-				if ( t == null )
-					this.branch_type = Git.BranchType.LOCAL;
-				else
-					this.branch_type = t;
+			this.set_headers_visible( false );
 
-				ListStore store = new ListStore(1, typeof(string) );
-				this.set_model(store);
-				
-				Gtk.CellRendererText cell = new CellRendererText();
-				this.pack_start(cell, true);
-				this.add_attribute(cell, "text", 0);
-				
-				
-				// Get all local branches
-				if( this.branch_type == Git.BranchType.LOCAL)
-					GitCore.for_local_branches( fill_store );
-				else if ( this.branch_type == Git.BranchType.REMOTE )
-					GitCore.for_remotes_branches( fill_store );
-					
-				this.active = 0;
-		
-			}
+			if ( branch == null )
+				branch = "master";
 
-			public void reload_branch_list()
-			{
-				this.clear_list();
-				if( this.branch_type == Git.BranchType.LOCAL)
-					GitCore.for_local_branches( fill_store );
-				else if ( this.branch_type == Git.BranchType.REMOTE )
-					GitCore.for_remotes_branches( fill_store );
-				this.active = 0;
-			}
+			load_commit_list( branch );				
 			
-			private void clear_list()
-			{
-				ListStore store = (ListStore) this.get_model();
-				store.clear();
-			}
+			// Columns
+			TreeViewColumn column = new TreeViewColumn();
+			column.set_title("");
+			
+			// Config of the cells
+			CellRendererText cell;
+			
+			cell = new CellRendererText();
+			column.pack_start(cell, true);
+			column.add_attribute(cell, "text", 0);
 
-			// The delegate
-			private void fill_store( string g )
+			this.append_column(column);
+
+		}
+		
+		public void load_commit_list( string branch )
+		{
+			uint i;
+			
+
+			Gtk.TreeIter iter; 
+			Gtk.ListStore store = new Gtk.ListStore(2, typeof(string), typeof(string));
+			List<CommitInfo?> commit_info = GitCore.all_commits( branch );
+
+
+
+			for( i = 0 ; i < commit_info.length(); i++)
 			{
-				ListStore store = (ListStore) this.get_model();
-				TreeIter iter;
+				string text = "";
+				string time_str = "";
+				// Time
+				time_t ts = (time_t) commit_info.nth_data(i).time;
+				var t = Time.gm ( ts );
+				time_str = "%s %s".printf(t.format("%b %d, %Y").to_string(), t.format("%H:%M").to_string());
+				
+				// Author and commit
+				text = "%s\t\t%s\n%s".printf(commit_info.nth_data(i).author,time_str, commit_info.nth_data(i).message);
+
+				
+
 
 				store.append( out iter );
-				store.set( iter, 0 , g);
-		
-				this.set_model( store );
-			} 
+				store.set(iter, 0, text);
+				
+				
+			}
+			
+			this.set_model( store );
 
+		}
+	} // End of CommitTree class
 	
-		}
-
-		public class CommitTree : Gtk.TreeView
+	public class RepositoriesList : Gtk.ComboBox
+	{
+		public unowned string selected_repository;	
+	
+		public RepositoriesList ()
 		{
-			public CommitTree( string? branch )
-			{
-
-				this.set_headers_visible( false );
-
-				if ( branch == null )
-					branch = "master";
-
-				load_commit_list( branch );				
-				
-				// Columns
-				TreeViewColumn column = new TreeViewColumn();
-				column.set_title("");
-				
-				// Config of the cells
-				CellRendererText cell;
-				
-				cell = new CellRendererText();
-				column.pack_start(cell, true);
-				column.add_attribute(cell, "text", 0);
-
-				this.append_column(column);
-
-			}
+			ListStore store = new ListStore(1, typeof(string));
+			this.set_model( store );
 			
-			public void load_commit_list( string branch )
-			{
-				uint i;
-				
-
-				Gtk.TreeIter iter; 
-				Gtk.ListStore store = new Gtk.ListStore(2, typeof(string), typeof(string));
-				List<CommitInfo?> commit_info = GitCore.all_commits( branch );
-
-
-
-				for( i = 0 ; i < commit_info.length(); i++)
-				{
-					string text = "";
-					string time_str = "";
-					// Time
-					time_t ts = (time_t) commit_info.nth_data(i).time;
-					var t = Time.gm ( ts );
-					time_str = "%s %s".printf(t.format("%b %d, %Y").to_string(), t.format("%H:%M").to_string());
-					
-					// Author and commit
-					text = "%s\t\t%s\n%s".printf(commit_info.nth_data(i).author,time_str, commit_info.nth_data(i).message);
-
-					
-
-
-					store.append( out iter );
-					store.set(iter, 0, text);
-					
-					
-				}
-				
-				this.set_model( store );
-
-			}
+			// The columns
+			CellRendererText cell;
+			
+			cell = new CellRendererText();
+			this.pack_start(cell, true);
+			this.add_attribute(cell, "text", 0);
+			
+			load_repo_list();
 		}
 		
-		public class RepositoriesList : Gtk.ComboBox
+		public void load_repo_list()
 		{
-			public RepositoriesList ()
+			string[] repositories = Configuration.Repos.get_groups();
+			ListStore store = (ListStore) this.get_model();
+			TreeIter iter;
+			int p = 0;
+			bool already_taken = false;
+			
+			foreach( unowned string name in repositories )
 			{
-				ListStore store = new ListStore(1, typeof(string));
-				this.set_model( store );
+				store.append( out iter );
+				store.set( iter, 0 , name);
 				
-				// The columns
-				CellRendererText cell;
-				
-				cell = new CellRendererText();
-				this.pack_start(cell, true);
-				this.add_attribute(cell, "text", 0);
-				
-				load_repo_list();
+				if( Configuration.Repos.get_active( name ) )
+				{
+					already_taken = true;
+					this.selected_repository = name;
+				}	
+				if ( ! already_taken )
+					p++;
 				
 			}
 			
-			public void load_repo_list()
-			{
-				string[] repositories = Configuration.Repos.get_groups();
-				ListStore store = (ListStore) this.get_model();
-				TreeIter iter;
-				int p = 0;
-				bool already_taken = false;
-				
-				foreach( unowned string name in repositories )
-				{
-					store.append( out iter );
-					store.set( iter, 0 , name);
-					
-					if( Configuration.Repos.get_active( name ) )
-						already_taken = true;
-						
-					if ( ! already_taken )
-						p++;
-					
-				}
-				
-				this.set_model( store );
-				this.active = p;
-				
-			} 
-		}
-	}// End of Widgets namespace
+			this.set_model( store );
+			this.active = p;
+		} 
+
+	} // End of RepositoriesList
+
+}// End of Widgets namespace
