@@ -55,6 +55,7 @@ namespace Windows {
 		
 		private const string TITLE = "Guit";
 		
+		private int last_commit_index;
 
 		// Box that divides Webkit and buttons from left
 		private Gtk.Box main_box;
@@ -95,6 +96,8 @@ namespace Windows {
 		public MainWindow() {
 			
 			set_default_size (1024,600);
+
+			this.last_commit_index = -1;
 			this.create_widgets ();
 			this.connect_signals ();
 			show_all();
@@ -159,11 +162,21 @@ namespace Windows {
 			// Commit file tree view
 			commit_files_tree_container = new ScrolledWindow (null, null);
 			commit_files_tree_container.set_policy( PolicyType.AUTOMATIC,PolicyType.AUTOMATIC);
+			var model = new TreeStore (1, typeof(string));
+
+			var cell = new CellRendererText();
+			var column = new TreeViewColumn ();
+			column.pack_start ( cell, true );
+			column.set_title ("Files");
+			column.add_attribute ( cell, "text", 0);
+
 			commit_files_tree = new TreeView ();
+			commit_files_tree.set_model( model );
+			commit_files_tree.append_column( column );
 			// We need to figure out how to fill this treeview ("¬.¬)
 			
 			commit_files_tree_container.add ( commit_files_tree );
-			right_container.pack_start( commit_files_tree_container, false, false, 0 );
+			right_container.pack_start( commit_files_tree_container, true, true, 0 );
 			main_pane.pack2( right_container, true, true );
 			
 			// The main box.
@@ -184,6 +197,9 @@ namespace Windows {
 			this.destroy.connect ( this.close_window );
 			this.local_branch_list.changed.connect( this.change_commit_list );
 			this.repositories_list.changed.connect( this.change_repository );
+
+			this.commit_tree.cursor_changed.connect( this.load_file_tree );
+
 			this.preferences_menu.activate.connect(this.show_preferences);
 			this.exit_menu.activate.connect(this.close_window);
 		}
@@ -191,7 +207,42 @@ namespace Windows {
 		/*
 		 * 	Signals
 		 */
-		 
+		
+		private void load_file_tree ()
+		{
+			// Initializations.
+			int[] depth;
+			TreePath path;
+			
+			
+			commit_tree.get_cursor ( out path, null );
+			if ( path != null )
+			{
+				// Get the indice. It will be always depth[0] because
+				// It's a liststore.
+				depth = path.get_indices();
+				if ( this.last_commit_index != depth[0] )
+				{
+
+					// We clear the file tree.
+					TreeStore t = (TreeStore) commit_files_tree.get_model();
+					t.clear();
+					commit_files_tree.set_model (t);
+
+					// Set the last index to this.
+					this.last_commit_index = depth[0];
+
+					GitCore.foreach_file_in_tree( depth[0], "master", ( file_info ) => {
+						TreeStore s = (TreeStore) commit_files_tree.get_model();
+						TreeIter iter;
+						s.append( out iter , null);
+						s.set( iter, 0, file_info.name, -1 );
+						commit_files_tree.set_model (s);
+					});
+				}
+			}
+		}
+
 		private void change_commit_list ()
 		{
 			// Initializations
@@ -256,7 +307,6 @@ namespace Windows {
 		{
 			Gtk.main_quit(); 
 		} 
-	
 
 	} // End of class Main Window
 

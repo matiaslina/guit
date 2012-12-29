@@ -9,9 +9,6 @@ public static int main(string[] args) {
 	
 	Configuration.load_repos();
 	GitCore.load_repository("/home/matias/workspace/guit");
-	GitCore.last_commit ();
-	
-	GitCore.test_tree(40);
 
 	new Windows.MainWindow();
 	

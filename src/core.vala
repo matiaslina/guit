@@ -209,39 +209,4 @@ namespace GitCore {
 			return 0;
 		});
 	}
-	
-	
-	/**
-	 * This are just for testing.
-	 */
-	public static void test_tree ( uint depth )
-	{
-		Git.Tree tree;
-		
-		get_nth_tree( out tree, ref depth, "master" );
-		
-		Git.object_id t = tree.id;
-		
-		Git.TreeWalker tree_walker = cb;
-		
-		tree.walk( Git.WalkMode.PRE, tree_walker);
-		
-		stdout.printf("tree oid: %s\n", t.to_string());
-		
-	}
-	
-	private int cb ( string root, Git.TreeEntry entry )
-	{
-
-		stdout.printf("----------------------------\nroot: %s\nentry: %s\n",
-			root, entry.name);
-		return 0;
-	}
-	
-	
-	
-	
-	
-}
-
-
+}// End of namespace GitCore

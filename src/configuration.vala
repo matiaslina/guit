@@ -69,10 +69,6 @@ namespace Configuration
 				file = new KeyFile();
 				file.load_from_file( where, KeyFileFlags.NONE);
 				repositories = file.get_groups();
-				foreach( unowned string group in repositories)
-				{
-					stdout.printf("group:%s\n", group);
-				}
 			}
 			catch ( Error e )
 			{
