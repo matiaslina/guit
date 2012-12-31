@@ -85,7 +85,7 @@ namespace Windows {
 		// File tree for every commit
 		private Box right_container;
 		private ScrolledWindow commit_files_tree_container;
-		private TreeView commit_files_tree;
+		private CommitFileTree commit_files_tree;
 			
 		// Dialogs
 		private Preferences preferences;
@@ -162,17 +162,8 @@ namespace Windows {
 			// Commit file tree view
 			commit_files_tree_container = new ScrolledWindow (null, null);
 			commit_files_tree_container.set_policy( PolicyType.AUTOMATIC,PolicyType.AUTOMATIC);
-			var model = new TreeStore (1, typeof(string));
-
-			var cell = new CellRendererText();
-			var column = new TreeViewColumn ();
-			column.pack_start ( cell, true );
-			column.set_title ("Files");
-			column.add_attribute ( cell, "text", 0);
-
-			commit_files_tree = new TreeView ();
-			commit_files_tree.set_model( model );
-			commit_files_tree.append_column( column );
+			
+			commit_files_tree = new CommitFileTree ();
 			// We need to figure out how to fill this treeview ("¬.¬)
 			
 			commit_files_tree_container.add ( commit_files_tree );
@@ -221,41 +212,11 @@ namespace Windows {
 				// Get the indice. It will be always depth[0] because
 				// It's a liststore.
 				depth = path.get_indices();
-				if ( this.last_commit_index != depth[0] )
+				if ( this.last_commit_index != depth[0] || local_branch_list.get_selected_branch() != commit_files_tree.last_branch)
 				{
-
-					// We clear the file tree.
-					TreeIter parent = TreeIter(), child;
-					string parent_name = "";
-					TreeStore t = (TreeStore) commit_files_tree.get_model();
-					t.clear();
-
-					// Set the last index to this.
 					this.last_commit_index = depth[0];
-					GitCore.FilesMap map = new FilesMap();
-					map.load_map(depth[0], "master" );
+					commit_files_tree.load_nth_file_tree ( depth[0], local_branch_list.get_selected_branch() );
 					
-					for( int i = 0; i < map.files.length() - 1; i++ )
-					{
-						if ( map.files.nth_data(i).parent == "" )
-						{
-							t.append( out child, null );
-							t.set ( child, 0, map.files.nth_data(i).name , -1);	
-						}
-						else 
-						{
-							t.append( out child, parent );
-							t.set (child, 0, map.files.nth_data(i).name, -1 );
-						}
-
-						if ( map.files.nth_data(i).is_dir )
-						{
-							parent_name = map.files.nth_data(i).parent + "/";
-							parent = child;
-						}
-					}	
-
-					commit_files_tree.set_model (t);
 
 				}
 			}
@@ -683,6 +644,7 @@ namespace Widget
 	{
 
 		private Git.BranchType branch_type;
+		private ListStore store;
 
 		public BranchList( Git.BranchType? t = null ) 
 		{
@@ -691,7 +653,7 @@ namespace Widget
 			else
 				this.branch_type = t;
 
-			ListStore store = new ListStore(1, typeof(string) );
+			store = new ListStore(1, typeof(string) );
 			this.set_model(store);
 			
 			Gtk.CellRendererText cell = new CellRendererText();
@@ -719,23 +681,33 @@ namespace Widget
 			this.active = 0;
 		}
 		
+		public string get_selected_branch ()
+		{
+			TreeIter iter;
+			Value val;
+			
+			this.get_active_iter ( out iter );
+			this.store.get_value(iter, 0, out val);
+			
+			return (string) val;
+		}
+		
 		private void clear_list()
 		{
-			ListStore store = (ListStore) this.get_model();
 			store.clear();
 		}
 
 		// The delegate
 		private void fill_store( string g )
 		{
-			ListStore store = (ListStore) this.get_model();
 			TreeIter iter;
 
 			store.append( out iter );
 			store.set( iter, 0 , g);
 	
 			this.set_model( store );
-		} 
+		}
+		
 
 
 	} // End of BranchList class
@@ -803,11 +775,102 @@ namespace Widget
 
 		}
 	} // End of CommitTree class
+
+	public class CommitFileTree : Gtk.TreeView
+	{
+		private TreeStore store;
+		public weak string last_branch;
+		
+		public CommitFileTree ()
+		{
+			// Initialize the treestore
+			this.store = new TreeStore (2, typeof(string), typeof(string) );
+
+			// Set the model.
+			set_model ( this.store );
+			
+			// Set the mixed_column with a pixbuf and a string
+			// This is for the icon and the name of the file
+			TreeViewColumn mixed_column = new TreeViewColumn();
+			mixed_column.set_title( "Files" );
+
+			var pixbuf_cell = new CellRendererPixbuf();
+			var text_cell = new CellRendererText ();
+			
+			mixed_column.pack_start( pixbuf_cell, false );
+			mixed_column.pack_start ( text_cell, true );
+
+			mixed_column.add_attribute( pixbuf_cell, "stock-id", 0 );
+			mixed_column.add_attribute( text_cell, "text", 1);
+
+			append_column( mixed_column );
+
+			this.visual_config ();
+
+		}
+
+		private void visual_config ()
+		{
+			uint16 background_color = 0x00AA;
+
+			this.modify_base (
+				StateType.NORMAL,
+				Gdk.Color () 
+				{
+					red = background_color,
+					green = background_color,
+					blue = background_color
+				}
+			);
+		}
+		
+		public void load_nth_file_tree ( uint depth, string branch )
+		{
+			// We clear the file tree.
+			this.last_branch = branch;
+			TreeIter parent = TreeIter(), child;
+			string parent_name = "";
+			string pixbuf_name;
+			
+			this.store.clear();
+
+			// Set the last index to this.
+			
+			GitCore.FilesMap map = new FilesMap();
+			map.load_map(depth , branch );
+			
+			for( int i = 0; i < map.files.length() - 1; i++ )
+			{
+				if ( map.files.nth_data(i).parent == "" )
+				{
+					this.store.append( out child, null );
+						
+				}
+				else 
+				{
+					this.store.append( out child, parent );
+				}
+
+				if ( map.files.nth_data(i).is_dir )
+				{
+					parent_name = map.files.nth_data(i).parent + "/";
+					parent = child;
+					pixbuf_name = Stock.DIRECTORY;
+				}
+				else
+					pixbuf_name = Stock.FILE;
+				
+				this.store.set ( child,0, pixbuf_name, 1, map.files.nth_data(i).name , -1);
+			}	
+
+			//set_model( this.store );
+		}
+	}	
 	
 	public class RepositoriesList : Gtk.ComboBox
 	{
-		public unowned string selected_repository;	
-	
+		public unowned string selected_repository;
+		
 		public RepositoriesList ()
 		{
 			ListStore store = new ListStore(1, typeof(string));
@@ -848,7 +911,7 @@ namespace Widget
 			
 			this.set_model( store );
 			this.active = p;
-		} 
+		}
 
 	} // End of RepositoriesList
 

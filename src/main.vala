@@ -8,12 +8,13 @@ public static int main(string[] args) {
 	
 	
 	Configuration.load_repos();
-	GitCore.load_repository("/home/matias/workspace/guit");
-   		   
-	GitCore.FilesMap map = new FilesMap ();
-	map.load_map ( 1, "master" );
-
-	map.foreach_debug();
+	
+   	string[] groups = Repos.get_groups();	   
+	if ( groups.length > 0 ) 
+	{
+		string path = Repos.get_info( groups[0], "path" );
+		GitCore.load_repository( path );
+	}
 
 	new Windows.MainWindow();
 	

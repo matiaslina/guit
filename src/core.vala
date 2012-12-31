@@ -1,5 +1,4 @@
 using Git;
-using Gtk;
 
 namespace GitCore {
 
