@@ -242,10 +242,12 @@ namespace GitCore {
 			);
 			//this.files.sort( parentcmp );
 		}
-
-		private CompareFunc<FileInfo?> parentcmp = ( a, b ) => {
-			return strcmp( a.parent, b.parent );
-		};
+		/* Just dont know if this one may be usefull.
+		 *
+		 * private CompareFunc<FileInfo?> parentcmp = ( a, b ) => {
+		 *      return strcmp( a.parent, b.parent );
+		 * };
+		 */
 
 		public void foreach_debug () 
 		{
