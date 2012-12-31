@@ -9,6 +9,11 @@ public static int main(string[] args) {
 	
 	Configuration.load_repos();
 	GitCore.load_repository("/home/matias/workspace/guit");
+   		   
+	GitCore.FilesMap map = new FilesMap ();
+	map.load_map ( 1, "master" );
+
+	map.foreach_debug();
 
 	new Windows.MainWindow();
 	

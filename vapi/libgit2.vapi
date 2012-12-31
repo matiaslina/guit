@@ -3888,7 +3888,7 @@ namespace Git {
 		 * The UNIX file attributes of a tree entry
 		 */
 		public FileMode attributes {
-			[CCode(cname = "git_tree_entry_attributes")]
+			[CCode(cname = "git_tree_entry_filemode")]
 			get;
 		}
 

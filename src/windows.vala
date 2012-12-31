@@ -225,20 +225,38 @@ namespace Windows {
 				{
 
 					// We clear the file tree.
+					TreeIter parent = TreeIter(), child;
+					string parent_name = "";
 					TreeStore t = (TreeStore) commit_files_tree.get_model();
 					t.clear();
-					commit_files_tree.set_model (t);
 
 					// Set the last index to this.
 					this.last_commit_index = depth[0];
+					GitCore.FilesMap map = new FilesMap();
+					map.load_map(depth[0], "master" );
+					
+					for( int i = 0; i < map.files.length() - 1; i++ )
+					{
+						if ( map.files.nth_data(i).parent == "" )
+						{
+							t.append( out child, null );
+							t.set ( child, 0, map.files.nth_data(i).name , -1);	
+						}
+						else 
+						{
+							t.append( out child, parent );
+							t.set (child, 0, map.files.nth_data(i).name, -1 );
+						}
 
-					GitCore.foreach_file_in_tree( depth[0], "master", ( file_info ) => {
-						TreeStore s = (TreeStore) commit_files_tree.get_model();
-						TreeIter iter;
-						s.append( out iter , null);
-						s.set( iter, 0, file_info.name, -1 );
-						commit_files_tree.set_model (s);
-					});
+						if ( map.files.nth_data(i).is_dir )
+						{
+							parent_name = map.files.nth_data(i).parent + "/";
+							parent = child;
+						}
+					}	
+
+					commit_files_tree.set_model (t);
+
 				}
 			}
 		}

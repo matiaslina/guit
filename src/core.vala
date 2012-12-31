@@ -1,4 +1,5 @@
 using Git;
+using Gtk;
 
 namespace GitCore {
 
@@ -13,7 +14,7 @@ namespace GitCore {
 	 * like that.
 	 */
 	public delegate void StringIterator( string s );
-	public delegate void TreeIterator ( FileInfo i);
+	public delegate void TreeIterator ( FileInfo i );
 
 	//Struct with the info of the commit.
 	public struct CommitInfo
@@ -30,6 +31,7 @@ namespace GitCore {
 	{
 		public string parent;
 		public string name;
+		public bool is_dir;
 	}
 
 	// One instance for the repository.
@@ -169,6 +171,9 @@ namespace GitCore {
 		return uid;
 	}
 	
+	/**
+	 * Get the n three of the brach passed by parameter.
+	 */
 	private void get_nth_tree( out Git.Tree tree, ref uint depth, string branch )
 	{
 		
@@ -202,11 +207,53 @@ namespace GitCore {
 		tree.walk( Git.WalkMode.PRE, (r, e) => {
 			FileInfo info = FileInfo() {
 				parent = r,
-				name = e.name
+				name = e.name,
+				is_dir = e.attributes.is_dir()
 			};
 			
 			t( info );
 			return 0;
 		});
 	}
+
+	public class FilesMap 
+	{
+		public List<FileInfo?> files; 
+		
+		/**
+		 * Constructor
+		 */
+		public FilesMap ()
+		{
+			files = new List<FileInfo?>();
+		}
+
+		private void clear ()
+		{
+			this.files = null;
+			this.files = new List<FileInfo?>();
+		}
+
+		public void load_map ( uint depth, string branch )
+		{
+			this.clear();
+			foreach_file_in_tree( depth, branch, ( info ) => {
+					this.files.append( info );
+				}
+			);
+			//this.files.sort( parentcmp );
+		}
+
+		private CompareFunc<FileInfo?> parentcmp = ( a, b ) => {
+			return strcmp( a.parent, b.parent );
+		};
+
+		public void foreach_debug () 
+		{
+			this.files.foreach ( ( info ) => {
+				stdout.printf ( "parent: %s\n name: %s\n", info.parent, info.name );
+			});
+		}	
+	}
+
 }// End of namespace GitCore
