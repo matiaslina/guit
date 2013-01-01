@@ -139,6 +139,24 @@ namespace Windows
 			this.log.buffer.text = buffer_string;
 		}
 
+		/**
+		 * Parse an input to get an array of string with
+		 * the commands for the git command.
+		 *
+		 * ex1:
+		 * 	input 	-> commit -m "Initial commit"
+		 *	output 	-> { "git", "commit","-m", "\"Initial commit\"" }
+		 *
+		 * ex2:
+		 *	input 	-> push -u origin master
+		 *	output	-> { "git", "push", "-u", "origin", "master" }
+		 */
+		public string[] parse_input ( string input )
+		{
+			// Gonna make this later.
+			return { "git" };	
+		}		
+
 		private void write_on_log_view ()
 		{
 			MainLoop loop = new MainLoop ();
