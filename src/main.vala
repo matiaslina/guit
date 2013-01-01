@@ -6,7 +6,7 @@ using GitCore;
 public static int main(string[] args) {
 	Gtk.init(ref args);
 	
-	
+	// Load the configuration.
 	Configuration.load_repos();
 	
    	string[] groups = Repos.get_groups();	   
@@ -15,6 +15,9 @@ public static int main(string[] args) {
 		string path = Repos.get_info( groups[0], "path" );
 		GitCore.load_repository( path );
 	}
+
+	// Load a new console.
+	create_console();
 
 	new Windows.MainWindow();
 	

@@ -89,7 +89,7 @@ namespace Windows {
 			
 		// Dialogs
 		private Preferences preferences;
-	
+		
 		/**
 		 *	Construct for the main window
 		 */
@@ -98,6 +98,7 @@ namespace Windows {
 			set_default_size (1024,600);
 
 			this.last_commit_index = -1;
+
 			this.create_widgets ();
 			this.connect_signals ();
 			show_all();
@@ -186,6 +187,8 @@ namespace Windows {
 		// Gonna connect every widget in here
 		private void connect_signals() {
 			this.destroy.connect ( this.close_window );
+			this.key_press_event.connect ( key_pressed );
+
 			this.local_branch_list.changed.connect( this.change_commit_list );
 			this.repositories_list.changed.connect( this.change_repository );
 
@@ -198,6 +201,18 @@ namespace Windows {
 		/*
 		 * 	Signals
 		 */
+
+		private bool key_pressed ( Gtk.Widget source, Gdk.EventKey key)
+		{
+			switch ( key.keyval )
+			{
+				case Gdk.Key.F9:
+					console.toggle();
+					break;
+			}
+
+			return false;
+		}
 		
 		private void load_file_tree ()
 		{
@@ -272,6 +287,9 @@ namespace Windows {
 			// Load the repository
 			GitCore.load_repository( path );
 			
+			// Log into the console
+			console.change_repository( (string) repo_name, path );
+
 			// Modify all the data in the window.
 			local_branch_list.reload_branch_list();
 			remote_branch_list.reload_branch_list();

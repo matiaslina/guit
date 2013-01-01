@@ -16,6 +16,7 @@ FILES = \
 	src/windows.vala \
 	src/core.vala \
 	src/configuration.vala \
+	src/console.vala \
 
 C_FILES = \
 	src/main.c \
