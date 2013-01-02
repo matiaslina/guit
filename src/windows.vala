@@ -441,8 +441,8 @@ namespace Windows {
 						
 						model.append( out iter );
 						model.set(iter, 0, g[last_repo], 1, Repos.get_info( g[last_repo], "path") );
-						
 					}
+					aer_dialog.destroy();
 					break;
 				case Status.EDITING_REPO:
 					aer_dialog = new RepoDialog( Status.EDITING_REPO );
@@ -462,7 +462,7 @@ namespace Windows {
 						model.get_iter(out iter, tree_path);
 						model.set(iter,0, name, 1, Repos.get_info( name, "path"));
 					}
-					
+					aer_dialog.destroy();
 					break;
 				case Status.REMOVING_REPO:
 					this.get_selected_repository(out name, Status.REMOVING_REPO );
@@ -626,11 +626,9 @@ namespace Windows {
 						t_repository_name.set_sensitive( true );
 						
 					//this.hide_all();
-					destroy();
 					break;
 				case Gtk.ResponseType.CANCEL:
 					//this.hide_all();
-					destroy();
 					break;
 			}
 		}
