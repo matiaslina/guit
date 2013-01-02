@@ -171,11 +171,6 @@ namespace Windows
 				}
 				spawn_args += message_split[1];
 
-				foreach ( string s in spawn_args )
-				{
-					stdout.printf("%s\n",s);
-				}
-				
 				string[] spawn_env = Environ.get();
 				Pid child_pid;
 
