@@ -153,8 +153,7 @@ namespace Windows
 		 */
 		public string[] parse_input ( string input )
 		{
-			// Gonna make this later.
-			return { "git" };	
+			return {"git"};	
 		}		
 
 		private void write_on_log_view ()
@@ -195,6 +194,38 @@ namespace Windows
 						out standard_output,
 						out standard_error
 					);
+
+				// Stdin
+				IOChannel input = new IOChannel.unix_new ( standard_input);
+				input.add_watch ( IOCondition.IN | IOCondition.HUP, ( channel, condition ) => {
+
+						if ( condition == IOCondition.HUP )
+						{
+							return false;
+						}
+
+						try
+						{
+							string line;
+							channel.read_line ( out line, null, null );
+
+							new_line ( line );
+						}
+						catch ( IOChannelError e) 
+						{
+							stdout.printf("IOChannelError %s\n", e.message );
+							return false;
+						}
+						catch ( ConvertError e )
+						{
+							stdout.printf("ConvertError: %s\n", e.message );
+							return false;
+						}
+
+
+
+						return true;
+				});
 
 				// Stdout
 				IOChannel output = new IOChannel.unix_new ( standard_output);

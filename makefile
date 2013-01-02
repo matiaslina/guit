@@ -14,6 +14,7 @@ ADITIONAL_PACKAGES = --vapidir ./vapi \
 FILES = \
 	src/main.vala \
 	src/windows.vala \
+	src/widgets.vala \
 	src/core.vala \
 	src/configuration.vala \
 	src/console.vala \
