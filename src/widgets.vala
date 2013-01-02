@@ -133,9 +133,6 @@ namespace Widget
 				// Author and commit
 				text = "%s\t\t%s\n%s".printf(commit_info.nth_data(i).author,time_str, commit_info.nth_data(i).message);
 
-				
-
-
 				store.append( out iter );
 				store.set(iter, 0, text);
 				
@@ -244,9 +241,6 @@ namespace Widget
 		
 		public RepositoriesList ()
 		{
-			ListStore store = new ListStore(1, typeof(string));
-			this.set_model( store );
-			
 			// The columns
 			CellRendererText cell;
 			
@@ -260,7 +254,7 @@ namespace Widget
 		public void load_repo_list()
 		{
 			string[] repositories = Configuration.Repos.get_groups();
-			ListStore store = (ListStore) this.get_model();
+			ListStore store = new ListStore(1, typeof(string));
 			TreeIter iter;
 			int p = 0;
 			bool already_taken = false;
@@ -284,6 +278,36 @@ namespace Widget
 			this.active = p;
 		}
 
+		public void add_new_repository( string name )
+		{
+			TreeIter iter;
+			ListStore store = (ListStore) this.get_model();
+			
+			store.append( out iter );
+			store.set( iter, 0, name );
+		}
+
+		public void remove_repository( string name )
+		{
+			TreeIter iter;
+			uint i = 0;
+			TreePath path = new TreePath.from_indices(i);
+			ListStore store = (ListStore) this.get_model();
+
+			while ( store.get_iter( out iter, path ) )
+			{
+				Value val;
+				store.get_value( iter, 0, out val );
+
+				if ( ((string) val) == name )
+				{
+					store.remove( iter );
+					break;
+				}
+				i++;
+				path = new TreePath.from_indices(i);
+			}
+		}
 	} // End of RepositoriesList
 
 }// End of Widgets namespace

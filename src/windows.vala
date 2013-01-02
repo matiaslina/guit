@@ -188,10 +188,20 @@ namespace Windows {
 		private void connect_signals() {
 			this.destroy.connect ( this.close_window );
 			this.key_press_event.connect ( key_pressed );
-
+			
+			// When the user change a value in this comboboxes.
 			this.local_branch_list.changed.connect( this.change_commit_list );
 			this.repositories_list.changed.connect( this.change_repository );
+			
+			Repos.add.connect(( t, name ) => {
+					this.repositories_list.add_new_repository( name );
+			});
 
+			Repos.remove.connect((t, name) => {
+					this.repositories_list.remove_repository( name );
+			});
+
+			// If there's a click in the commit list.
 			this.commit_tree.cursor_changed.connect( this.load_file_tree );
 
 			this.preferences_menu.activate.connect(this.show_preferences);
@@ -352,12 +362,11 @@ namespace Windows {
 			Gtk.ListStore store = new Gtk.ListStore(2,typeof(string),typeof(string));
 			Gtk.TreeIter iter;
 			
-			for( int i=0 ; i < Repos.repositories.length; i++)
+			for( int i=0 ; i < Repos.get_groups().length; i++)
 			{
 				// Here is the error.
-				string key = Repos.repositories[i];
+				string key = Repos.get_groups()[i];
 				string val = Repos.get_info( key, "path");
-				stdout.printf("Key: %s\tValue: %s\n", key, val);
 				store.append( out iter );
 				store.set(iter,0, key, 1, val);
 			}
@@ -441,7 +450,12 @@ namespace Windows {
 						
 						model.append( out iter );
 						model.set(iter, 0, g[last_repo], 1, Repos.get_info( g[last_repo], "path") );
+
+						// Send a signal that the repo has been added.
+						Repos.add( g[last_repo] );
 					}
+
+					// Destroy the dialog
 					aer_dialog.destroy();
 					break;
 				case Status.EDITING_REPO:
@@ -462,6 +476,10 @@ namespace Windows {
 						model.get_iter(out iter, tree_path);
 						model.set(iter,0, name, 1, Repos.get_info( name, "path"));
 					}
+					// Send a signal that a repo has been modified.
+					//Repos.modify( old_name, new_name );
+					
+					// Destroy the dialog
 					aer_dialog.destroy();
 					break;
 				case Status.REMOVING_REPO:
@@ -479,6 +497,9 @@ namespace Windows {
 							stderr.printf("%s\n",e.message);
 						}
 					}
+
+					// Send a signal that the a repo has been removed
+					Repos.remove( name );
 					break;
 			}
 		}

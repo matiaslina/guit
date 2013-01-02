@@ -57,13 +57,16 @@ namespace Configuration
 		private KeyFile file;
 
 		public static string[] repositories;
+
+		public signal void add( string name );
+		public signal void modify ( string old_name, string new_name );
+		public signal void remove ( string name );
 				
 		/**
 		 * Constructor of a new Repositories manager
 		 */
 		public Repositories( string where ) throws InvalidConfigError
 		{
-			
 			try
 			{
 				file = new KeyFile();
@@ -157,6 +160,14 @@ namespace Configuration
 		public string[] get_groups()
 		{
 			return this.file.get_groups();
+		}
+
+		public string get_last_repo()
+		{
+			string[] aux = this.file.get_groups();
+			uint last_index = aux.length - 1;
+
+			return aux[last_index];
 		}
 
 		/**
