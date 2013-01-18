@@ -296,6 +296,6 @@ namespace Windows
 			}
 		}
 
-
 	} // End of console class
+
 }

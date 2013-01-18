@@ -207,7 +207,7 @@ namespace Widget
 			// Set the last index to this.
 			
 			GitCore.FilesMap map = new FilesMap();
-			map.load_map(depth , branch );
+			map.load_list(depth , branch );
 			
 			// will iterate over all the files.
 			for( int i = 0; i < map.files.length() - 1; i++ )
@@ -318,5 +318,6 @@ namespace Widget
 			}
 		}
 	} // End of RepositoriesList
+
 
 }// End of Widgets namespace

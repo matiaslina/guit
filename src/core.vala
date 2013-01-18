@@ -1,4 +1,5 @@
 using Git;
+using Utils;
 
 namespace GitCore {
 
@@ -195,7 +196,7 @@ namespace GitCore {
 		current_repository.lookup_commit( out commit, commit_oid);
 		
 		// Get the tree
-		commit.lookup_tree( out tree);
+		commit.lookup_tree( out tree );
 	}
 	
 	public static void foreach_file_in_tree( uint depth, string branch, TreeIterator t )
@@ -217,39 +218,49 @@ namespace GitCore {
 
 	public class FilesMap 
 	{
-		public List<FileInfo?> files; 
+		public List<FileInfo?> files;
 		
 		/**
 		 * Constructor
 		 */
 		public FilesMap ()
 		{
-			files = new List<FileInfo?>();
+			files 	= new List<FileInfo?>();
 		}
 
-		private void clear ()
+		private void clear_list ()
 		{
 			this.files = null;
 			this.files = new List<FileInfo?>();
 		}
 
-		public void load_map ( uint depth, string branch )
+		public void load_list( uint depth, string branch )
 		{
-			this.clear();
+			this.clear_list();
 			foreach_file_in_tree( depth, branch, ( info ) => {
 					this.files.append( info );
 				}
 			);
-			//this.files.sort( parentcmp );
+			debug_list();
 		}
-		/* Just dont know if this one may be usefull.
-		 *
-		 * private CompareFunc<FileInfo?> parentcmp = ( a, b ) => {
-		 *      return strcmp( a.parent, b.parent );
-		 * };
+		
+		public void sort()
+		{
+			this.files.sort( parentcmp );
+		}
+		
+		/**
+		 * Function that compares the parents to sort the list.
 		 */
+		private CompareFunc<FileInfo?> parentcmp = ( a, b ) => {
+			return strcmp( a.parent, b.parent );
+		};
+			
 
-		public void foreach_debug () 
+		/**
+		 * Just a function for debug the list
+		 */
+		public void debug_list () 
 		{
 			this.files.foreach ( ( info ) => {
 				stdout.printf ( "parent: %s\n name: %s\n", info.parent, info.name );

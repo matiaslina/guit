@@ -18,6 +18,7 @@ FILES = \
 	src/core.vala \
 	src/configuration.vala \
 	src/console.vala \
+	src/utils.vala \
 
 C_FILES = \
 	src/main.c \
