@@ -20,7 +20,7 @@ FILES = \
 	src/guit_preferences.vala \
 	src/guit_repository_combobox.vala \
 	src/guit_aer_dialog.vala \
-	src/core.vala \
+	src/git_core.vala \
 	src/configuration.vala \
 	src/console_main.vala \
 	src/console_callbacks.vala \
