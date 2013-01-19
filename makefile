@@ -17,7 +17,9 @@ FILES = \
 	src/widgets.vala \
 	src/core.vala \
 	src/configuration.vala \
-	src/console.vala \
+	src/console_main.vala \
+	src/console_callbacks.vala \
+	src/console_window.vala \
 	src/utils.vala \
 
 C_FILES = \

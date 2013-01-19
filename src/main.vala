@@ -2,6 +2,7 @@ using Gtk;
 using Windows;
 using Configuration;
 using GitCore;
+using Console;
 
 public static int main(string[] args) {
 	Gtk.init(ref args);

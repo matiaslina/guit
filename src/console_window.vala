@@ -1,16 +1,10 @@
 using Gtk;
 using Configuration;
+using Console.Callback;
 
-namespace Windows
+namespace Console.Gui
 {
-	public static Console console;
-
-	public static void create_console ()
-	{
-		console = new Console ();
-	}
-
-	public class Console : Gtk.Window
+	public class ConsoleWindow : Gtk.Window
 	{
 		
 		private ScrolledWindow log_container;
@@ -20,7 +14,7 @@ namespace Windows
 
 		private string repository;
 
-		public Console ()
+		public ConsoleWindow ()
 		{
 			// Some visual preferences.
 			this.title = "Git console";
@@ -79,7 +73,7 @@ namespace Windows
 			});
 
 			// KeyPressed
-			this.key_press_event.connect ( on_key_press );
+			this.key_press_event.connect ( on_console_key_press );
 
 			// Text Changed
 			log.size_allocate.connect ( () => {
@@ -103,28 +97,19 @@ namespace Windows
 				this.show_all ();
 		}
 
-		private bool on_key_press ( Gtk.Widget source, Gdk.EventKey key )
+		public void new_line_from_command_line ()
 		{
-			switch ( key.keyval )
-			{
-				case Gdk.Key.F9:
-					if ( get_visible () )
-						this.set_visible ( false );
-					else
-						show_all();
-					break;
-				case Gdk.Key.Return:
-					// Concatenate the previous string with the new command.
-					new_line ( command_line.get_text(), true );
-
-					write_on_log_view ();
-
-					// Clear the input
-					command_line.set_text("");
-					break;
-			}
-
-			return false;
+			string text = command_line.get_text();
+			
+			// Clear the input
+			command_line.set_text("");
+			
+			// Print the new line in the console.
+			this.new_line ( text, true );
+			
+			// Print all the output from the command in the console.
+			this.write_on_log_view( text );
+			
 		}
 
 		public void new_line ( string line , bool needs_linebreak = false )
@@ -156,13 +141,13 @@ namespace Windows
 			return {"git"};	
 		}		
 
-		private void write_on_log_view ()
+		private void write_on_log_view ( string command )
 		{
 			MainLoop loop = new MainLoop ();
 			try 
 			{
 				string[] spawn_args = {"git"}; 
-				string[] message_split = this.command_line.get_text().split(" \"");
+				string[] message_split = command.split(" \"");
 				string[] commands_args = message_split[0].split(" ");
 
 				foreach ( string s in commands_args)

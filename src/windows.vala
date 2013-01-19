@@ -8,6 +8,7 @@ using Pango;
 using Widget;
 using Configuration;
 using GitCore;
+using Console;
 
 namespace Windows {
 
