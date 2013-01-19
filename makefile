@@ -12,9 +12,14 @@ ADITIONAL_PACKAGES = --vapidir ./vapi \
 	--pkg libgit2 \
 
 FILES = \
-	src/main.vala \
-	src/windows.vala \
-	src/widgets.vala \
+	src/guit.vala \
+	src/guit_main_window.vala \
+	src/guit_branch_combobox.vala \
+	src/guit_commit_treeview.vala \
+	src/guit_file_treeview.vala \
+	src/guit_preferences.vala \
+	src/guit_repository_combobox.vala \
+	src/guit_aer_dialog.vala \
 	src/core.vala \
 	src/configuration.vala \
 	src/console_main.vala \

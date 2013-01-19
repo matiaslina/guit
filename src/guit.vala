@@ -1,5 +1,5 @@
 using Gtk;
-using Windows;
+using Guit;
 using Configuration;
 using GitCore;
 using Console;
@@ -20,7 +20,7 @@ public static int main(string[] args) {
 	// Load a new console.
 	create_console();
 
-	new Windows.MainWindow();
+	new MainWindow();
 	
 	Gtk.main();
 	

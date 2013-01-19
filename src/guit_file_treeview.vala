@@ -4,6 +4,7 @@
 */
 
 using Gtk;
+using GitCore;
 
 namespace Guit.Widgets
 {

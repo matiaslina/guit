@@ -3,6 +3,8 @@
 	@email: matiaslina@gmail.com
 */
 
+using Gtk;
+
 namespace Guit.Widgets
 {
 	public class BranchList : Gtk.ComboBox 
