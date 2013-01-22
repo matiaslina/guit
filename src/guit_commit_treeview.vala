@@ -42,7 +42,7 @@ namespace Guit.Widgets
 
 			Gtk.TreeIter iter; 
 			Gtk.ListStore store = new Gtk.ListStore(2, typeof(string), typeof(string));
-			List<CommitInfo?> commit_info = GitCore.all_commits( branch );
+			List<Structs.CommitInfo?> commit_info = GitCore.all_commits( branch );
 
 
 

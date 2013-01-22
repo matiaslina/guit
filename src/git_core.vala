@@ -1,38 +1,11 @@
 using Git;
 using Utils;
 
+using GitCore.Structs;
+
 namespace GitCore {
 
-	errordomain CoreError
-	{
-		INVALID_REPO_PATH,
-		NULL_COMMIT,
-	}
-	/**
-	 * StringIterator. This delegate takes a string
-	 * to iter over some list, array, or somethings
-	 * like that.
-	 */
-	public delegate void StringIterator( string s );
-	public delegate void TreeIterator ( FileInfo i );
-
-	//Struct with the info of the commit.
-	public struct CommitInfo
-	{
-		public Git.object_id ci_id;
-		public string message;
-		public string author;
-		public string email;
-		public int64 time;
-		public int offset_time;
-	}
 	
-	public struct FileInfo
-	{
-		public string parent;
-		public string name;
-		public bool is_dir;
-	}
 
 	// One instance for the repository.
 	private static Git.Repository current_repository;
@@ -108,7 +81,7 @@ namespace GitCore {
 			string hex_oid;
 			Git.Commit commit;
 			Git.object_id oid;
-			GitCore.CommitInfo info;
+			Structs.CommitInfo info;
 
 			// Getting the string oid from the branch passed by parameter.
 			hex_oid = GitCore.uid( branch );
@@ -176,7 +149,8 @@ namespace GitCore {
 	 */
 	private void get_nth_tree( out Git.Tree tree, ref uint depth, string branch )
 	{
-		
+		Commit commit;
+	
 		// Get the commit list from the branch passed from parameter.
 		List<CommitInfo?> commit_info = all_commits( branch );
 		
@@ -192,7 +166,6 @@ namespace GitCore {
 		Git.object_id commit_oid = commit_info.nth_data( depth ).ci_id;
 		
 		// lookup the commit
-		Commit commit;
 		current_repository.lookup_commit( out commit, commit_oid);
 		
 		// Get the tree
@@ -205,7 +178,7 @@ namespace GitCore {
 		get_nth_tree( out tree, ref depth, branch);
 		
 		tree.walk( Git.WalkMode.PRE, (r, e) => {
-			FileInfo info = FileInfo() {
+			GitFileInfo info = GitFileInfo() {
 				parent = r,
 				name = e.name,
 				is_dir = e.attributes.is_dir()
@@ -215,57 +188,4 @@ namespace GitCore {
 			return 0;
 		});
 	}
-
-	public class FilesMap 
-	{
-		public List<FileInfo?> files;
-		
-		/**
-		 * Constructor
-		 */
-		public FilesMap ()
-		{
-			files 	= new List<FileInfo?>();
-		}
-
-		private void clear_list ()
-		{
-			this.files = null;
-			this.files = new List<FileInfo?>();
-		}
-
-		public void load_list( uint depth, string branch )
-		{
-			this.clear_list();
-			foreach_file_in_tree( depth, branch, ( info ) => {
-					this.files.append( info );
-				}
-			);
-			debug_list();
-		}
-		
-		public void sort()
-		{
-			this.files.sort( parentcmp );
-		}
-		
-		/**
-		 * Function that compares the parents to sort the list.
-		 */
-		private CompareFunc<FileInfo?> parentcmp = ( a, b ) => {
-			return strcmp( a.parent, b.parent );
-		};
-			
-
-		/**
-		 * Just a function for debug the list
-		 */
-		public void debug_list () 
-		{
-			this.files.foreach ( ( info ) => {
-				stdout.printf ( "parent: %s\n name: %s\n", info.parent, info.name );
-			});
-		}	
-	}
-
 }// End of namespace GitCore

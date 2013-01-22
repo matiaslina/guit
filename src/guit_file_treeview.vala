@@ -4,7 +4,8 @@
 */
 
 using Gtk;
-using GitCore;
+using GitCore.Structs;
+using Utils;
 
 namespace Guit.Widgets
 {
@@ -70,8 +71,10 @@ namespace Guit.Widgets
 
 			// Set the last index to this.
 			
-			GitCore.FilesMap map = new FilesMap();
+			GitFileList map = new GitFileList();
 			map.load_list(depth , branch );
+			
+			create_hashfile_tree( map );
 			
 			// will iterate over all the files.
 			for( int i = 0; i < map.files.length() - 1; i++ )
