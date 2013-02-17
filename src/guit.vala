@@ -9,6 +9,7 @@ public static int main(string[] args) {
 	
 	// Load the configuration.
 	Configuration.load_repos();
+	Configuration.load_config();
 	
    	string[] groups = Repos.get_groups();	   
 	if ( groups.length > 0 ) 

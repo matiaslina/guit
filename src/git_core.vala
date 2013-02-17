@@ -1,6 +1,6 @@
 using Git;
 using Utils;
-
+using Configuration;
 using GitCore.Structs;
 
 namespace GitCore {
@@ -131,7 +131,6 @@ namespace GitCore {
 			string hex_oid;
 			Git.Commit commit;
 			Git.object_id oid;
-			Structs.CommitInfo info;
 
 			// Getting the string oid from the branch passed by parameter.
 			hex_oid = GitCore.uid( branch );
@@ -252,9 +251,10 @@ namespace GitCore {
 
 		try
 		{
-			object_id new_uid, commit_uid;
+			// This needs to be initialized
+			object_id oid;
 		
-			string? update_ref;
+			string? update_ref = null;
 		
 			Signature author, commiter;
 			Git.Tree tree;
@@ -266,41 +266,59 @@ namespace GitCore {
 			commit = last_commit();
 			
 			if (commit == null)
-				throw new CoreError.NULL_COMMIT();
+				throw new CoreError.NULL_COMMIT("Cannot get the last commit\n");
 		
 			// Retrive the last tree
 			commits_length = all_commits_size ( branch );
 			get_nth_tree( out tree, ref commits_length, branch );
 			if (tree == null)
-				throw new CoreError.NULL_TREE();
+				throw new CoreError.NULL_TREE("Cannot get the nth tree from the branch \n");
 
 			// Creating the signature of the author
 
 			// if the config name and email is "" then we throws false
-			if ( Configuration.name == "" || Configuration.email == "")
+			if ( Configuration.Config.name == "" || Configuration.Config.email == "")
 				return false;
 
-			int64 	time; 		// when the action happened
-			int 	offset;		// timezone offset in minutes for the time
+			// This needs to be initialized
+			int64 	time = 0; 		// when the action happened
+			int 	offset = 0;		// timezone offset in minutes for the time
 
 			Signature.create (out author, 
-					  Configuration.name, 
-					  Configuration.email,
+					  Configuration.Config.name, 
+					  Configuration.Config.email,
 					  time,
 					  offset);
-			
+
+			Signature.create (out commiter,
+					  Configuration.Config.name,
+					  Configuration.Config.email,
+					  time,
+					  offset);
+
+			// NOW: create the commit!!
+			Git.Error error = current_repository.create_commit( oid,
+								  	    update_ref,
+									    author,
+								  	    commiter,
+								  	    encoding,
+								  	    message,
+							  	            tree,
+							  	            {commit});
+			if( error == 0 )
+				return true;
+
 			
 		}
-		catch( CoreError e )
+		catch( CoreError.NULL_COMMIT e )
 		{
-			if (e == NULL_COMMIT)
-				stderr.printf("Cannot get the last commit from the branch %s\n", branch);
-			else if (e == NULL_TREE)
-				stderr.printf("Cannot get the %lu-nth tree from the branch %s\n", 
-					      commits_length, 
-					      branch);
-			return false;
+			stderr.printf("NULL_COMMIT ASSERTION: %s\n",e.message);
 		}
+		catch( CoreError.NULL_TREE e )
+		{
+			stderr.printf("NULL_TREE ASSERTION: %s\n",e.message);
+		}
+		return false;
 	}
 	
 }// End of namespace GitCore
