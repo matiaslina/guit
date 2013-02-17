@@ -7,11 +7,11 @@ namespace Configuration
 	
 	// Constants
 	public const string REPOSITORIES_PATH = "./repo.ini";
-	//public const string CONFIGURATION_PATH = "./config.ini";
+	public const string CONFIGURATION_PATH = "./config.ini";
 	
 	// One instance of the repos and one for the configs
 	public static Repositories Repos;
-	//public static Configuration Config;
+	public static Configuration Config;
 	
 	// init for the above instances
 	public static Repositories load_repos()
@@ -32,7 +32,7 @@ namespace Configuration
 		return Repos;
 	}
 	
-	/*
+	
 	public static Configuration load_config()
 	{
 		if (Config == null) 
@@ -50,7 +50,7 @@ namespace Configuration
 		
 		return Config;
 	}
-	*/
+
 	public class Repositories
 	{
 		// The key file
@@ -180,6 +180,48 @@ namespace Configuration
 		
 		
 	} // End of Repositories class
+
+	public class Configuration
+	{
+		private KeyFile file;
+
+		public string name;
+		public string email;
+		
+		/**
+		 * Constructor
+		 */
+		public Configuration( string where ) throws InvalidConfigError
+		{
+			try
+			{
+				file = new KeyFile();
+				file.load_from_file( where, KeyFileFlags.NONE);
+			}
+			catch ( Error e )
+			{
+				throw new InvalidConfigError.INVALID_CONFIG(e.message);
+			}
+		}
+		/**
+		 * Save the configuration into a file
+		 */ 
+		public bool save_in_file()
+		{
+			// New data to write into the config file.
+			string keyfile_str = this.file.to_data ();
+			try
+			{
+				FileUtils.set_contents(CONFIGURATION_PATH, keyfile_str);
+			}
+			catch (Error e)
+			{
+				stderr.printf("Error:%s\n",e.message);
+				return false;
+			}
+			return true;	
+		}
+	}
 
 	
 } // End of namespace Configuration

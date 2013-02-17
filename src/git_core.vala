@@ -247,6 +247,9 @@ namespace GitCore {
 					    Tree tree, 
 					    Commit[] parents);
 		*/
+		if (message == "")
+			return false;
+
 		try
 		{
 			object_id new_uid, commit_uid;
@@ -270,6 +273,22 @@ namespace GitCore {
 			get_nth_tree( out tree, ref commits_length, branch );
 			if (tree == null)
 				throw new CoreError.NULL_TREE();
+
+			// Creating the signature of the author
+
+			// if the config name and email is "" then we throws false
+			if ( Configuration.name == "" || Configuration.email == "")
+				return false;
+
+			int64 	time; 		// when the action happened
+			int 	offset;		// timezone offset in minutes for the time
+
+			Signature.create (out author, 
+					  Configuration.name, 
+					  Configuration.email,
+					  time,
+					  offset);
+			
 			
 		}
 		catch( CoreError e )
@@ -280,6 +299,7 @@ namespace GitCore {
 				stderr.printf("Cannot get the %lu-nth tree from the branch %s\n", 
 					      commits_length, 
 					      branch);
+			return false;
 		}
 	}
 	
