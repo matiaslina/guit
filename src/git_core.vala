@@ -120,6 +120,46 @@ namespace GitCore {
 
 		return commit_list;
 	}
+	
+	public static uint all_commits_size ( string branch )
+	{
+		uint size = 0;
+
+		try
+		{
+			// Initialization
+			string hex_oid;
+			Git.Commit commit;
+			Git.object_id oid;
+			Structs.CommitInfo info;
+
+			// Getting the string oid from the branch passed by parameter.
+			hex_oid = GitCore.uid( branch );
+
+			// Get the object_id
+			Git.object_id.from_string( out oid, hex_oid);
+
+			// Out the last commit.
+			current_repository.lookup_commit( out commit, oid);
+			
+			// If it's nulls, then there are no more
+			// Commits
+			while( commit != null )
+			{
+				size++;
+
+				// Lookup for the next commit.
+				commit.parents.lookup( out commit, 0);
+			}
+
+		} 
+		catch( CoreError e) 
+		{
+			stderr.printf(e.message);
+		}
+
+		return size;
+	}
 
 	/**
 	 * Retrive the oid from the head.
@@ -172,6 +212,9 @@ namespace GitCore {
 		commit.lookup_tree( out tree );
 	}
 	
+	/**
+	 * Method that iterate over a git tree 
+	 */
 	public static void foreach_file_in_tree( uint depth, string branch, TreeIterator t )
 	{
 		Git.Tree tree;
@@ -188,4 +231,56 @@ namespace GitCore {
 			return 0;
 		});
 	}
+	
+	/**
+	 * Create a commit over a branch
+	 */
+	public bool create_commit( string branch, string message, string? encoding = null )
+	{
+		/* This is the structure of the creation of the commit.
+		public Error create_commit( object_id id, 
+					    string? update_ref, 
+					    Signature author, 
+					    Signature committer, 
+					    string? message_encoding, 
+					    string message, 
+					    Tree tree, 
+					    Commit[] parents);
+		*/
+		try
+		{
+			object_id new_uid, commit_uid;
+		
+			string? update_ref;
+		
+			Signature author, commiter;
+			Git.Tree tree;
+			Commit? commit;
+		
+			uint commits_length;
+		
+			// retrive the last commit.
+			commit = last_commit();
+			
+			if (commit == null)
+				throw new CoreError.NULL_COMMIT();
+		
+			// Retrive the last tree
+			commits_length = all_commits_size ( branch );
+			get_nth_tree( out tree, ref commits_length, branch );
+			if (tree == null)
+				throw new CoreError.NULL_TREE();
+			
+		}
+		catch( CoreError e )
+		{
+			if (e == NULL_COMMIT)
+				stderr.printf("Cannot get the last commit from the branch %s\n", branch);
+			else if (e == NULL_TREE)
+				stderr.printf("Cannot get the %lu-nth tree from the branch %s\n", 
+					      commits_length, 
+					      branch);
+		}
+	}
+	
 }// End of namespace GitCore

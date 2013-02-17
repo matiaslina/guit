@@ -4,6 +4,7 @@ namespace GitCore.Structs
 	{
 		INVALID_REPO_PATH,
 		NULL_COMMIT,
+		NULL_TREE,
 	}
 	/**
 	 * StringIterator. This delegate takes a string
