@@ -231,19 +231,9 @@ namespace GitCore {
 	
 	/**
 	 * Create a commit over a branch
-	 */
+	 *
 	public bool create_commit( string branch, string message, string? encoding = null )
 	{
-		/* This is the structure of the creation of the commit.
-		public Error create_commit( object_id id, 
-					    string? update_ref, 
-					    Signature author, 
-					    Signature committer, 
-					    string? message_encoding, 
-					    string message, 
-					    Tree tree, 
-					    Commit[] parents);
-		*/
 		if (message == "")
 			return false;
 
@@ -325,5 +315,5 @@ namespace GitCore {
 		}
 		return false;
 	}
-	
+	*/
 }// End of namespace GitCore
