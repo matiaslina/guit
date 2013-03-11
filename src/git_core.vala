@@ -48,11 +48,10 @@ namespace GitCore {
 	 * Return the last commit.
 	 */
 
-	public static Commit? last_commit ()
+	public static void last_commit ( out Git.Commit commit)
 	{
 		try
 		{
-			Git.Commit commit;
 			Git.object_id oid;
 
 			// get the oid fromthe file.
@@ -62,12 +61,11 @@ namespace GitCore {
 
 			current_repository.lookup_commit( out commit, oid);
 			
-			return commit;
 		}
 		catch (CoreError e)
 		{
-			stderr.printf(e.message);
-			return null;
+			stderr.printf("Cannot get the last commit of the repository");
+			commit = null;
 		}
 	}
 
@@ -223,7 +221,7 @@ namespace GitCore {
 			GitFileInfo info = GitFileInfo() {
 				parent = r,
 				name = e.name,
-				is_dir = e.attributes.is_dir()
+				is_dir = e.mode.is_dir()
 			};
 			
 			t( info );
@@ -258,16 +256,18 @@ namespace GitCore {
 		
 			Signature author, commiter;
 			Git.Tree tree;
-			Commit? commit;
+			Commit commit;
 		
 			uint commits_length;
 		
 			// retrive the last commit.
-			commit = last_commit();
+			last_commit(out commit);
 			
 			if (commit == null)
 				throw new CoreError.NULL_COMMIT("Cannot get the last commit\n");
-		
+				
+
+							
 			// Retrive the last tree
 			commits_length = all_commits_size ( branch );
 			get_nth_tree( out tree, ref commits_length, branch );
@@ -297,14 +297,19 @@ namespace GitCore {
 					  offset);
 
 			// NOW: create the commit!!
-			Git.Error error = current_repository.create_commit( oid,
+			unowned Commit u_commit = commit;
+			Commit[] parents = new Commit[1];
+			
+			parents[0] = u_commit; // Fuck you!!! ¬.¬ you're unowned ¬.¬
+			
+			Git.Error error = current_repository.create_commit( out oid,
 								  	    update_ref,
 									    author,
 								  	    commiter,
 								  	    encoding,
 								  	    message,
-							  	            tree,
-							  	            {commit});
+									    tree,
+							  	        parents);
 			if( error == 0 )
 				return true;
 

@@ -24,9 +24,7 @@ namespace Guit {
 	}
 
 	public class MainWindow : Gtk.Window {
-		
-		private const string TITLE = "Guit";
-		
+				
 		private int last_commit_index;
 
 		// Box that divides Webkit and buttons from left
@@ -83,7 +81,7 @@ namespace Guit {
 
 			// New windows and properties.
 		
-			this.title = this.TITLE;
+			this.title = "Guit";
 			this.window_position = WindowPosition.CENTER;
 			this.set_border_width( 0 );
 		
